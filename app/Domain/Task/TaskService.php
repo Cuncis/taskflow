@@ -25,4 +25,23 @@ class TaskService
 
         return $task;
     }
+
+    public function updateTask(Task $task, array $data): Task
+    {
+        $titleChanged = $data['title'] !== $task->title;
+
+        $task->title = $data['title'];
+        $task->description = $data['description'];
+        $task->status = $data['status'];
+
+        if ($titleChanged) {
+            $task->slug = $this->slugGenerator->generateUniqueSlug($data['title'], $task->id);
+        }
+
+        $task->save();
+
+        Log::info("Task updated: {$task->title}", ['task_id' => $task->id]);
+
+        return $task;
+    }
 }

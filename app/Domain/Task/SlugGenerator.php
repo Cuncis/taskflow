@@ -8,13 +8,17 @@ use Illuminate\Support\Str;
 class SlugGenerator
 {
 
-    public function generateUniqueSlug(string $title): string
+    public function generateUniqueSlug(string $title, ?int $ignoreTaskId = null): string
     {
         $slug = Str::slug($title);
         $originalSlug = $slug;
         $count = 1;
 
-        while (Task::where('slug', $slug)->exists()) {
+        while (
+            Task::where('slug', $slug)
+                ->when($ignoreTaskId, fn ($query) => $query->where('id', '!=', $ignoreTaskId))
+                ->exists()
+        ) {
             $slug = $originalSlug . '-' . $count;
             $count++;
         }
