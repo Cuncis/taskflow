@@ -10,7 +10,7 @@ interface TaskRepositoryInterface
     public function find(int $id): ?Task;
 
     /**
-     * @param  array{title: string, description: ?string, status: string, slug: string}  $data
+     * @param  array{title: string, description: ?string, status: string, project_id: ?int, slug?: string}  $data
      */
     public function create(array $data): Task;
 

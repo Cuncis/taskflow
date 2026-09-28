@@ -17,11 +17,11 @@ class TaskService
 
     public function createTask(array $data): Task
     {
-        $task = Task::create([
+        $task = $this->taskRepository->create([
             'title' => $data['title'],
-            'description' => $data['description'],
+            'description' => $data['description'] ?? null,
             'status' => $data['status'],
-            'project_id' => $data['project_id'] ?? null
+            'project_id' => $data['project_id'] ?? null,
         ]);
 
         Log::info("Task created: {$task->title}", ['task_id' => $task->id]);
