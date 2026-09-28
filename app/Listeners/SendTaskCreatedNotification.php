@@ -1,0 +1,27 @@
+<?php
+
+namespace App\Listeners;
+
+use App\Domain\Notification\NotificationChannel;
+use App\Events\TaskCreated;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
+
+class SendTaskCreatedNotification
+{
+    /**
+     * Create the event listener.
+     */
+    public function __construct(private NotificationChannel $notificationChannel) {}
+
+    /**
+     * Handle the event.
+     */
+    public function handle(TaskCreated $event): void
+    {
+        $this->notificationChannel->send(
+            to: 'team@taskflow.test',
+            message: "New task created: {$event->task->title}",
+        );
+    }
+}
