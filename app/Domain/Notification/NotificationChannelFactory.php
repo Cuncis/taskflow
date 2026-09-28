@@ -16,6 +16,7 @@ class NotificationChannelFactory
             NotificationPreference::Email => $this->container->make(EmailChannel::class),
             NotificationPreference::Sms => $this->container->make(SmsChannel::class),
             NotificationPreference::Slack => $this->container->make(SlackChannel::class),
+            NotificationPreference::Push => $this->container->make(PushChannel::class),
         };
     }
 }
