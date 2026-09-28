@@ -3,6 +3,7 @@
 namespace App\Domain\Task;
 
 use App\Domain\Notification\NotificationChannel;
+use App\Events\TaskCompleted;
 use App\Events\TaskCreated;
 use App\Models\Task;
 use Illuminate\Database\Eloquent\Collection;
@@ -43,6 +44,15 @@ class TaskService
         $task->save();
 
         Log::info("Task updated: {$task->title}", ['task_id' => $task->id]);
+
+        return $task;
+    }
+
+    public function completeTask(Task $task): Task
+    {
+        $task = $this->taskRepository->update($task, ['status' => 'done']);
+
+        TaskCompleted::dispatch($task);
 
         return $task;
     }
