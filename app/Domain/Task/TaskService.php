@@ -2,6 +2,7 @@
 
 namespace App\Domain\Task;
 
+use App\Domain\Notification\NotificationChannel;
 use App\Models\Task;
 use Illuminate\Support\Facades\Log;
 
@@ -9,7 +10,8 @@ class TaskService
 {
 
     public function __construct(
-        private SlugGenerator $slugGenerator
+        private SlugGenerator $slugGenerator,
+        private NotificationChannel $notificationChannel
     ) {}
 
     public function createTask(array $data): Task
@@ -22,6 +24,11 @@ class TaskService
         ]);
 
         Log::info("Task created: {$task->title}", ['task_id' => $task->id]);
+
+        $this->notificationChannel->send(
+            to: 'team@taskflow.test',
+            message: "New task created: {$task->title}"
+        );
 
         return $task;
     }
