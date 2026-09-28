@@ -2,6 +2,8 @@
 
 namespace App\Domain\Task\Export;
 
+use Override;
+
 class CsvTaskExporter implements TaskExporterInterface
 {
     public function export(array $tasks): string
@@ -13,5 +15,11 @@ class CsvTaskExporter implements TaskExporterInterface
         }
 
         return implode("\n", $lines);
+    }
+
+    #[Override]
+    public function canExport(array $tasks): bool
+    {
+        return true;
     }
 }

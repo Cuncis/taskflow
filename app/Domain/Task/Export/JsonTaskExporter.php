@@ -11,4 +11,10 @@ class JsonTaskExporter implements TaskExporterInterface
     {
         return json_encode($tasks);
     }
+
+    #[Override]
+    public function canExport(array $tasks): bool
+    {
+        return true;
+    }
 }
