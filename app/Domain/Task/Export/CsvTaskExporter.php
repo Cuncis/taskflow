@@ -3,11 +3,17 @@
 namespace App\Domain\Task\Export;
 
 use Override;
+use RuntimeException;
 
 class CsvTaskExporter implements TaskExporterInterface
 {
+    #[Override]
     public function export(array $tasks): string
     {
+        if (! $this->canExport($tasks)) {
+            throw new RuntimeException('CSV export not supported for these tasks.');
+        }
+
         $lines = ['title, status'];
 
         foreach ($tasks as $task) {
@@ -17,6 +23,9 @@ class CsvTaskExporter implements TaskExporterInterface
         return implode("\n", $lines);
     }
 
+    /**
+     * CSV has no task-count limit, so this is always true.
+     */
     #[Override]
     public function canExport(array $tasks): bool
     {

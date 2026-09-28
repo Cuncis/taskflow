@@ -3,6 +3,7 @@
 namespace App\Domain\Task\Export;
 
 use Override;
+use RuntimeException;
 use SimpleXMLElement;
 
 class XmlTaskExporter implements TaskExporterInterface
@@ -10,6 +11,10 @@ class XmlTaskExporter implements TaskExporterInterface
     #[Override]
     public function export(array $tasks): string
     {
+        if (! $this->canExport($tasks)) {
+            throw new RuntimeException('XML export not supported for these tasks.');
+        }
+
         $root = new SimpleXMLElement('<tasks/>');
 
         foreach ($tasks as $task) {
@@ -21,5 +26,14 @@ class XmlTaskExporter implements TaskExporterInterface
         }
 
         return $root->asXML();
+    }
+
+    /**
+     * XML has no task-count limit, so this is always true.
+     */
+    #[Override]
+    public function canExport(array $tasks): bool
+    {
+        return true;
     }
 }
