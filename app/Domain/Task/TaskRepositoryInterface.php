@@ -1,0 +1,28 @@
+<?php
+
+namespace App\Domain\Task;
+
+use App\Models\Task;
+use Illuminate\Database\Eloquent\Collection;
+
+interface TaskRepositoryInterface
+{
+    public function find(int $id): ?Task;
+
+    /**
+     * @param  array{title: string, description: ?string, status: string, slug: string}  $data
+     */
+    public function create(array $data): Task;
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function update(Task $task, array $data): Task;
+
+    /**
+     * @return Collection<int, Task>
+     */
+    public function findActiveForProject(int $projectId): Collection;
+
+    public function slugExists(string $slug, ?int $ignoreTaskId = null): bool;
+}
