@@ -21,6 +21,17 @@ class TaskObserver
     }
 
     /**
+     * Runs before the UPDATE. Only a changed title gets a new slug, and a slug
+     * set explicitly in the same save is left alone.
+     */
+    public function updating(Task $task): void
+    {
+        if ($task->isDirty('title') && ! $task->isDirty('slug')) {
+            $task->slug = $this->slugGenerator->generateUniqueSlug($task->title, $task->id);
+        }
+    }
+
+    /**
      * Handle the Task "updated" event.
      */
     public function updated(Task $task): void
