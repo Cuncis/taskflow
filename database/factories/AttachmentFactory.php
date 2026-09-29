@@ -17,8 +17,13 @@ class AttachmentFactory extends Factory
      */
     public function definition(): array
     {
+        $filename = fake()->unique()->word().'.png';
+
         return [
-            //
+            'filename' => $filename,
+            'path' => 'attachments/'.$filename,
+            'mime_type' => 'image/png',
+            'size' => fake()->numberBetween(1_000, 5_000_000),
         ];
     }
 }
