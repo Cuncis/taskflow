@@ -6,6 +6,9 @@ use App\Domain\Notification\EmailChannel;
 use App\Domain\Notification\NotificationChannel;
 use App\Domain\Notification\SmsChannel;
 use App\Domain\Notification\UrgentAlertService;
+use App\Models\Project;
+use App\Models\Task;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -27,6 +30,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Relation::enforceMorphMap([
+            'task' => Task::class,
+            'project' => Project::class
+        ]);
     }
 }

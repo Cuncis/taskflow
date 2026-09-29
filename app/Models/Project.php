@@ -2,26 +2,21 @@
 
 namespace App\Models;
 
-use App\Observers\TaskObserver;
-use Database\Factories\TaskFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
-#[ObservedBy([TaskObserver::class])]
-#[Fillable(['title', 'description', 'status', 'slug', 'project_id', 'due_date'])]
-class Task extends Model
+#[Fillable(['name', 'description'])]
+class Project extends Model
 {
-    /** @use HasFactory<TaskFactory> */
     use HasFactory;
 
-    /** @return BelongsTo<Project, $this> */
-    public function project(): BelongsTo
+    /** @return HasMany<Task, $this> */
+    public function tasks(): HasMany
     {
-        return $this->belongsTo(Project::class);
+        return $this->hasMany(Task::class);
     }
 
     /** @return MorphMany<Comment, $this> */
