@@ -44,7 +44,8 @@ class TaskObserver
      */
     public function deleted(Task $task): void
     {
-        //
+        $task->comments()->delete();
+        $task->attachments()->delete();
     }
 
     /**

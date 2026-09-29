@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 #[Fillable(['name', 'description'])]
@@ -29,5 +30,16 @@ class Project extends Model
     public function attachments(): MorphMany
     {
         return $this->morphMany(Attachment::class, 'attachable');
+    }
+
+    /** @return HasManyThrough<Comment, Task, $this> */
+    public function taskComments(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            Comment::class,
+            Task::class,
+            'project_id',      // foreign key on the middle table (tasks.project_id)
+            'commentable_id',  // foreign key on the final table (comments.commentable_id)
+        )->where('comments.commentable_type', 'task');
     }
 }
