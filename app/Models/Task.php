@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 #[ObservedBy([TaskObserver::class])]
-#[Fillable(['title', 'description', 'status', 'slug', 'project_id', 'due_date'])]
+#[Fillable(['title', 'description', 'status', 'slug', 'project_id', 'due_date', 'assignee_id'])]
 class Task extends Model
 {
     /** @use HasFactory<TaskFactory> */
@@ -41,5 +41,11 @@ class Task extends Model
     public function attachments(): MorphMany
     {
         return $this->morphMany(Attachment::class, 'attachable');
+    }
+
+    /** @return BelongsTo<User, $this> */
+    public function assignee(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assignee_id');
     }
 }
