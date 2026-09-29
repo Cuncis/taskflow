@@ -8,6 +8,7 @@ use App\Domain\Notification\SmsChannel;
 use App\Domain\Notification\UrgentAlertService;
 use App\Models\Project;
 use App\Models\Task;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
 
@@ -30,6 +31,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Model::preventLazyLoading(! app()->environment('production'));
+
         Relation::enforceMorphMap([
             'task' => Task::class,
             'project' => Project::class
