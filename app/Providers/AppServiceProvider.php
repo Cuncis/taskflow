@@ -6,6 +6,8 @@ use App\Domain\Notification\EmailChannel;
 use App\Domain\Notification\NotificationChannel;
 use App\Domain\Notification\SmsChannel;
 use App\Domain\Notification\UrgentAlertService;
+use App\Domain\Task\Repositories\EloquentTaskRepository;
+use App\Domain\Task\TaskRepositoryInterface;
 use App\Models\Project;
 use App\Models\Task;
 use Illuminate\Database\Eloquent\Model;
@@ -19,6 +21,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->bind(TaskRepositoryInterface::class, EloquentTaskRepository::class);
         $this->app->bind(NotificationChannel::class, EmailChannel::class); // default for everyone
 
         $this->app->when(UrgentAlertService::class)

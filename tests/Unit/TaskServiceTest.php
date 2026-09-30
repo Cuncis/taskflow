@@ -26,7 +26,9 @@ class TaskServiceTest extends TestCase
 
     public function test_it_completes_a_task_and_announces_it(): void
     {
-        Event::fake([TaskCompleted::class]);
+        // TaskCreated is faked too: the setup createTask() must not run real listeners
+        // (they'd queue a job that reloads the never-persisted in-memory task).
+        Event::fake([TaskCreated::class, TaskCompleted::class]);
 
         $service = new TaskService(new FakeTaskRepository());
         $task = $service->createTask(['title' => 'Finish me', 'status' => 'in_progress']);

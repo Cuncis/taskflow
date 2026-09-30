@@ -2,11 +2,15 @@
 
 namespace App\Domain\Notification;
 
+use Illuminate\Support\Facades\Http;
+
 class SlackChannel implements NotificationChannel
 {
     public function send(string $to, string $message): void
     {
-        // Pretend this posts to a real Slack webhook — stubbed for now.
-        logger("Slack to {$to}: {$message}");
+        Http::post('https://hooks.slack.example.com/services/fake-webhook-url', [
+            'text' => $message,
+            'channel' => $to,
+        ]);
     }
 }
