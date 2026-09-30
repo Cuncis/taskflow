@@ -1,9 +1,9 @@
 <?php
 
+use App\Domain\Project\Models\Project;
+use App\Domain\Task\Http\Controllers\TaskController;
+use App\Domain\Task\Models\Task;
 use App\Http\Controllers\LifecycleTestController;
-use App\Http\Controllers\TaskController;
-use App\Models\Project;
-use App\Models\Task;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {

@@ -3,10 +3,10 @@
 namespace Tests\Feature;
 
 use App\Domain\Notification\NotificationChannel;
-use App\Events\TaskCreated;
-use App\Jobs\LogTaskCreationJob;
-use App\Models\Project;
-use App\Models\Task;
+use App\Domain\Project\Models\Project;
+use App\Domain\Task\Events\TaskCreated;
+use App\Domain\Task\Jobs\LogTaskCreationJob;
+use App\Domain\Task\Models\Task;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;

@@ -11,6 +11,8 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    // Listeners live with their domain, not in app/Listeners (the only path discovered by default).
+    ->withEvents(discover: [__DIR__.'/../app/Domain/Task/Listeners'])
     ->withMiddleware(function (Middleware $middleware): void {
         //
     })

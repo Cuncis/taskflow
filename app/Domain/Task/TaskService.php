@@ -2,9 +2,10 @@
 
 namespace App\Domain\Task;
 
-use App\Events\TaskCompleted;
-use App\Events\TaskCreated;
-use App\Models\Task;
+use App\Domain\Task\Events\TaskCompleted;
+use App\Domain\Task\Events\TaskCreated;
+use App\Domain\Task\Models\Task;
+use App\Domain\Task\Repositories\TaskRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
 

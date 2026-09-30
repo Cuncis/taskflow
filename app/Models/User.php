@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Domain\Collaboration\Models\Comment;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 use App\Domain\Notification\NotificationPreference;

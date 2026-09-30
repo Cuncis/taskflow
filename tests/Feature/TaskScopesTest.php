@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Domain\Project\Models\Project;
+use App\Domain\Task\Models\Task;
 use App\Domain\Task\TaskPriority;
-use App\Models\Project;
-use App\Models\Task;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Database\Eloquent\Factories\Sequence;

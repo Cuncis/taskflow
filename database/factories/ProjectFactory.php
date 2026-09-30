@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\Project;
+use App\Domain\Project\Models\Project;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class ProjectFactory extends Factory
 {
+    /** @var class-string<Project> */
+    protected $model = Project::class;
+
     /**
      * Define the model's default state.
      *

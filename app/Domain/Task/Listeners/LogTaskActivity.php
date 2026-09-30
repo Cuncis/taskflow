@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Listeners;
+namespace App\Domain\Task\Listeners;
 
-use App\Events\TaskCreated;
-use App\Jobs\LogTaskCreationJob;
+use App\Domain\Task\Events\TaskCreated;
+use App\Domain\Task\Jobs\LogTaskCreationJob;
 
 class LogTaskActivity
 {

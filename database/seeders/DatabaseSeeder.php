@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\Project;
-use App\Models\Task;
+use App\Domain\Project\Models\Project;
+use App\Domain\Task\Models\Task;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 

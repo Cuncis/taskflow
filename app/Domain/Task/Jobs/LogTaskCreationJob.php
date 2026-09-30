@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Jobs;
+namespace App\Domain\Task\Jobs;
 
-use App\Models\Task;
+use App\Domain\Task\Models\Task;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;

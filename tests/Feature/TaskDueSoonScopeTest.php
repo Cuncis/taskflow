@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\Task;
+use App\Domain\Task\Models\Task;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;

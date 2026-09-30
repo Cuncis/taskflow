@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\Attachment;
+use App\Domain\Collaboration\Models\Attachment;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class AttachmentFactory extends Factory
 {
+    /** @var class-string<Attachment> */
+    protected $model = Attachment::class;
+
     /**
      * Define the model's default state.
      *

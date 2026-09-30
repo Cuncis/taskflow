@@ -1,15 +1,18 @@
 <?php
 
-namespace App\Models;
+namespace App\Domain\Collaboration\Models;
 
+use App\Models\User;
 use Database\Factories\CommentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 #[Fillable(['user_id', 'body'])]
+#[UseFactory(CommentFactory::class)]
 class Comment extends Model
 {
     /** @use HasFactory<CommentFactory> */

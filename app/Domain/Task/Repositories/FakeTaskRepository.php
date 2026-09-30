@@ -2,8 +2,7 @@
 
 namespace App\Domain\Task\Repositories;
 
-use App\Domain\Task\TaskRepositoryInterface;
-use App\Models\Task;
+use App\Domain\Task\Models\Task;
 use Illuminate\Database\Eloquent\Collection;
 
 /**

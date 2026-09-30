@@ -1,0 +1,108 @@
+# TaskFlow Architecture
+
+## Folder Structure
+
+TaskFlow organizes code by DOMAIN (business concept) rather than by TYPE (Controller,
+Model, etc). Each domain folder under `app/Domain/` contains everything related to
+that concept: its model, controllers, requests, events, listeners, observers, and
+supporting services.
+
+```
+app/Domain/
+├── Task/            models, repositories (interface, Eloquent, in-memory fake), exporters,
+│                    events, listeners, observer, global scope, queued job,
+│                    http/{Controllers,Requests,Resources}, TaskService, SlugGenerator, TaskPriority
+├── Project/         Project model
+├── Collaboration/   Comment and Attachment models
+└── Notification/    channel abstraction (Email, SMS, Slack, Push), the factory that
+                     selects one by user preference, and the services that use it
+```
+
+- `app/Domain/Task/` — tasks, the core unit of work in TaskFlow.
+- `app/Domain/Project/` — projects, which group tasks together.
+- `app/Domain/Collaboration/` — comments and attachments, which can belong to
+  either a Task or a Project (polymorphic), so they don't belong to either
+  domain exclusively.
+- `app/Domain/Notification/` — the notification channel abstraction (Email,
+  SMS, Slack, Push) and the factory that selects one based on user preference.
+
+## What's NOT domain-organized, on purpose
+
+- `database/factories`, `database/migrations`, `database/seeders` stay in
+  Laravel's conventional locations, since Artisan's generators and Eloquent's
+  factory-discovery convention are tightly coupled to them.
+- `app/Models/User.php` stays in its default location, since Laravel's
+  authentication internals carry soft assumptions about this path.
+- `app/Http/Controllers/Controller.php` (the base class) and
+  `app/Providers/` stay where the framework expects them.
+
+## Conventions that only work because of explicit wiring
+
+Moving classes out of Laravel's default folders removes some conventions that
+"just worked". These are the places where that wiring is now explicit; if you
+add a new domain, do the same:
+
+- **Model factories.** Eloquent guesses `Database\Factories\<Model>Factory` only for
+  models in `App\Models`. Every domain model therefore declares
+  `#[UseFactory(XFactory::class)]`, and every factory declares
+  `protected $model = X::class`. A new model without both breaks `X::factory()`.
+- **Event listeners.** Laravel only auto-discovers listeners in `app/Listeners`. Task's
+  listeners are registered with `->withEvents(discover: [...])` in
+  `bootstrap/app.php`. A listener placed in a new domain folder is silently never
+  called until that folder is added there. Run `sail artisan event:list` to check.
+  (If events are cached in production, re-run `event:cache` after changes.)
+- **Morph map.** `Relation::enforceMorphMap([...])` in `AppServiceProvider` maps
+  `task` and `project` to their model classes, so polymorphic rows in the database
+  do not depend on class names or namespaces. Moving a model does not require a
+  data migration.
+- **Repository binding.** `TaskRepositoryInterface` is bound to
+  `EloquentTaskRepository` in `AppServiceProvider`; tests can use
+  `FakeTaskRepository` (in-memory) instead.
+
+## Why this structure
+
+The honest reason is a question a new developer will ask on day one: "how does
+creating a task actually work?" Under Laravel's default layout the answer was spread
+over nine top-level folders (Models, Observers, Events, Listeners, Jobs,
+Http/Controllers, Http/Requests, Http/Resources, Domain/Task), and the only way to
+find the pieces was to already know they existed. In the domain layout it is one
+folder: open `app/Domain/Task/` and the request, the service, the observer that
+writes the slug, the event, and the listeners it triggers are all within a few
+subfolders of each other.
+
+It also matches how the code actually changes. When we changed how tasks get their
+`project_id`, or added the `Urgent` priority, the code edits landed inside
+`app/Domain/Task/` (plus its tests and, for `Urgent`, the factory in
+`database/factories`). Change-by-feature is the normal case; a
+folder per file *type* means every feature touches every folder.
+
+The costs are real, and worth stating so nobody is surprised by them:
+
+- **Some judgment calls.** Comment and Attachment attach to either a Task or a
+  Project, so putting them under either one would be arbitrary. They get their own
+  small `Collaboration` domain. `User` stays in `app/Models` because Laravel's
+  authentication assumes it. Not everything has an obvious home, and that is fine.
+- **Laravel's conventions no longer do the work for us.** Factory lookup and
+  listener discovery both assume the default folders, so they are wired up
+  explicitly (see above). Forgetting one fails in a confusing way: a factory that
+  can't be found, or a listener that is simply never called.
+- **Namespaces must mirror folders exactly.** PSR-4 is unforgiving about this, and
+  the failure is loud but indirect. A single wrong `namespace` line in
+  `TaskObserver.php` did not produce an error in that file: composer warned it
+  "does not comply with psr-4", the `Task` model then failed with "Unable to find
+  observer", and the whole test suite died before reporting a single failure.
+  If the tests suddenly stop running altogether after a move, check namespaces first
+  (`sail composer dump-autoload -o` names the offending file).
+
+We think that trade is worth it at this size and will keep paying off as more
+features arrive. It is a folder convention, not a framework: nothing here stops
+a domain from using another domain's classes, and we do not try to enforce
+boundaries between them.
+
+## Quality checks
+
+`sail composer check` runs Pint (style), PHPStan/Larastan (static analysis, level 5)
+and the test suite. Tests use a separate `testing` MySQL database and never write to
+the real log, send HTTP, or run real queued jobs (see `phpunit.xml` and
+`tests/TestCase.php`). Run it inside Sail: on the host, the `mysql` hostname does not
+resolve.

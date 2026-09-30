@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Domain\Task;
+namespace App\Domain\Task\Repositories;
 
-use App\Models\Task;
+use App\Domain\Task\Models\Task;
 use Illuminate\Database\Eloquent\Collection;
 
 interface TaskRepositoryInterface

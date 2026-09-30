@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Listeners;
+namespace App\Domain\Task\Listeners;
 
-use App\Events\TaskCompleted;
+use App\Domain\Task\Events\TaskCompleted;
 use Illuminate\Support\Facades\Log;
 
 class LogTaskCompleted

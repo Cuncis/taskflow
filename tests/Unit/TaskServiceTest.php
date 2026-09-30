@@ -2,10 +2,10 @@
 
 namespace Tests\Unit;
 
+use App\Domain\Task\Events\TaskCompleted;
+use App\Domain\Task\Events\TaskCreated;
 use App\Domain\Task\Repositories\FakeTaskRepository;
 use App\Domain\Task\TaskService;
-use App\Events\TaskCompleted;
-use App\Events\TaskCreated;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
 

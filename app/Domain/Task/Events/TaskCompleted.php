@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Events;
+namespace App\Domain\Task\Events;
 
-use App\Models\Task;
+use App\Domain\Task\Models\Task;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 

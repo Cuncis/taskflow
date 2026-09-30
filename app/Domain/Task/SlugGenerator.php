@@ -2,7 +2,7 @@
 
 namespace App\Domain\Task;
 
-use App\Models\Task;
+use App\Domain\Task\Models\Task;
 use Illuminate\Support\Str;
 
 class SlugGenerator

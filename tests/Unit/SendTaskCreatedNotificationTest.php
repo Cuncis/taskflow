@@ -3,9 +3,9 @@
 namespace Tests\Unit;
 
 use App\Domain\Notification\NotificationChannel;
-use App\Events\TaskCreated;
-use App\Listeners\SendTaskCreatedNotification;
-use App\Models\Task;
+use App\Domain\Task\Events\TaskCreated;
+use App\Domain\Task\Listeners\SendTaskCreatedNotification;
+use App\Domain\Task\Models\Task;
 use Mockery;
 use Tests\TestCase;
 

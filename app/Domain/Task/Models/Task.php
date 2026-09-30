@@ -1,15 +1,20 @@
 <?php
 
-namespace App\Models;
+namespace App\Domain\Task\Models;
 
+use App\Domain\Collaboration\Models\Attachment;
+use App\Domain\Collaboration\Models\Comment;
+use App\Domain\Project\Models\Project;
+use App\Domain\Task\Observers\TaskObserver;
+use App\Domain\Task\Scopes\ExcludeArchivedProjectTasksScope;
 use App\Domain\Task\TaskPriority;
-use App\Models\Scopes\ExcludeArchivedProjectTasksScope;
-use App\Observers\TaskObserver;
+use App\Models\User;
 use Database\Factories\TaskFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
+use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -20,6 +25,7 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
 #[ObservedBy([TaskObserver::class])]
 #[Fillable(['title', 'description', 'status', 'slug', 'project_id', 'due_date', 'assignee_id'])]
 #[ScopedBy([ExcludeArchivedProjectTasksScope::class])]
+#[UseFactory(TaskFactory::class)]
 class Task extends Model
 {
     /** @use HasFactory<TaskFactory> */

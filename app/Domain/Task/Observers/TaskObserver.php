@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Observers;
+namespace App\Domain\Task\Observers;
 
+use App\Domain\Task\Models\Task;
 use App\Domain\Task\SlugGenerator;
-use App\Models\Task;
 
 class TaskObserver
 {

@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Domain\Task\Http\Controllers;
 
+use App\Domain\Task\Http\Requests\StoreTaskRequest;
+use App\Domain\Task\Http\Resources\TaskResource;
 use App\Domain\Task\TaskService;
-use App\Http\Requests\StoreTaskRequest;
-use App\Http\Resources\TaskResource;
+use App\Http\Controllers\Controller;
 
 class TaskController extends Controller
 {

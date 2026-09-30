@@ -2,10 +2,10 @@
 
 namespace Database\Factories;
 
+use App\Domain\Collaboration\Models\Comment;
+use App\Domain\Project\Models\Project;
+use App\Domain\Task\Models\Task;
 use App\Domain\Task\TaskPriority;
-use App\Models\Comment;
-use App\Models\Project;
-use App\Models\Task;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -14,6 +14,9 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class TaskFactory extends Factory
 {
+    /** @var class-string<Task> */
+    protected $model = Task::class;
+
     /**
      * Define the model's default state.
      *

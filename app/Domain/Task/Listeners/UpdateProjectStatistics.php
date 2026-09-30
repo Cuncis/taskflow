@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Listeners;
+namespace App\Domain\Task\Listeners;
 
-use App\Events\TaskCreated;
+use App\Domain\Task\Events\TaskCreated;
 use Illuminate\Support\Facades\Log;
 
 class UpdateProjectStatistics

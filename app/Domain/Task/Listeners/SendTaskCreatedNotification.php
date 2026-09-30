@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Listeners;
+namespace App\Domain\Task\Listeners;
 
 use App\Domain\Notification\NotificationChannel;
-use App\Events\TaskCreated;
+use App\Domain\Task\Events\TaskCreated;
 
 class SendTaskCreatedNotification
 {
