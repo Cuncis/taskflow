@@ -25,4 +25,6 @@ interface TaskRepositoryInterface
     public function findActiveForProject(int $projectId): Collection;
 
     public function slugExists(string $slug, ?int $ignoreTaskId = null): bool;
+
+    public function findOverdue(): Collection;
 }

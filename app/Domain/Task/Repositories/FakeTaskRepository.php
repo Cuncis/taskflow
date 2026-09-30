@@ -46,6 +46,16 @@ class FakeTaskRepository implements TaskRepositoryInterface
         )));
     }
 
+    public function findOverdue(): Collection
+    {
+        return new Collection(array_values(array_filter(
+            $this->tasks,
+            fn (Task $task): bool => $task->status !== 'done'
+                && $task->due_date !== null
+                && $task->due_date->isPast(),
+        )));
+    }
+
     public function slugExists(string $slug, ?int $ignoreTaskId = null): bool
     {
         foreach ($this->tasks as $task) {
