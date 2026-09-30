@@ -68,6 +68,14 @@ class Task extends Model
         $query->where('assignee_id', $user->id);
     }
 
+    /** Not-done tasks due from today through $days days from now (inclusive; due_date is a DATE column). */
+    #[Scope]
+    protected function dueSoon(Builder $query, int $days = 3): void
+    {
+        $query->where('status', '!=', 'done')
+            ->whereBetween('due_date', [today(), today()->addDays($days)]);
+    }
+
     #[Scope]
     protected function priorityAtLeast(Builder $query, TaskPriority $minimum): void
     {
