@@ -12,7 +12,9 @@ Route::get('/', function () {
 
 Route::get('/lifecycle-test', [LifecycleTestController::class, 'show']);
 
-Route::post('/tasks', [TaskController::class, 'store']);
+Route::middleware('auth')->group(function () {
+    Route::post('/tasks', [TaskController::class, 'store']);
+});
 
 Route::get('/board-demo', function () {
     // $tasks = Task::all();
