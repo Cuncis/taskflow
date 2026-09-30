@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Domain\Notification\NotificationChannel;
 use App\Events\TaskCreated;
 use App\Jobs\LogTaskCreationJob;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -44,6 +45,8 @@ class CreateTaskTest extends TestCase
     {
         // Events stay real here so the LogTaskActivity listener runs; only the queue is faked.
         Queue::fake();
+        // The other TaskCreated listeners run for real too; keep the notification channel from sending.
+        $this->mock(NotificationChannel::class)->shouldIgnoreMissing();
 
         $this->postJson('/tasks', ['title' => 'Fix the login bug', 'status' => 'todo'])
             ->assertStatus(201);
@@ -52,5 +55,17 @@ class CreateTaskTest extends TestCase
             LogTaskCreationJob::class,
             fn (LogTaskCreationJob $job) => $job->task->title === 'Fix the login bug',
         );
+    }
+
+    public function test_it_does_not_queue_the_log_job_when_validation_fails(): void
+    {
+        // Events stay real: if validation ever let the request through, the listener would queue the job.
+        Queue::fake();
+
+        $this->postJson('/tasks', ['status' => 'todo']) // missing title
+            ->assertStatus(422);
+
+        Queue::assertNotPushed(LogTaskCreationJob::class);
+        Queue::assertNothingPushed();
     }
 }
