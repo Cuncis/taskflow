@@ -22,4 +22,11 @@ class ProjectFactory extends Factory
             'description' => fake()->paragraph(),
         ];
     }
+
+    public function archived(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'archived_at' => fake()->dateTimeBetween('-90 days', '-1 day'),
+        ]);
+    }
 }

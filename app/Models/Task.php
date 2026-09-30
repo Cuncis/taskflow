@@ -87,6 +87,7 @@ class Task extends Model
         $query->whereIn('priority', array_map(fn(TaskPriority $p): string => $p->value, $allowed));
     }
 
+    /** @return array{priority: class-string<TaskPriority>, due_date: 'date'} */
     protected function casts(): array
     {
         return [
