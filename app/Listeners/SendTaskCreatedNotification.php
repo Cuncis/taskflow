@@ -4,8 +4,6 @@ namespace App\Listeners;
 
 use App\Domain\Notification\NotificationChannel;
 use App\Events\TaskCreated;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 
 class SendTaskCreatedNotification
 {

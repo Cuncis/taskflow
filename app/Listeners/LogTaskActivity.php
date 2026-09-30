@@ -4,8 +4,6 @@ namespace App\Listeners;
 
 use App\Events\TaskCreated;
 use App\Jobs\LogTaskCreationJob;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 
 class LogTaskActivity
 {

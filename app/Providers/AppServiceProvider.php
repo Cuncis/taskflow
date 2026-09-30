@@ -38,7 +38,7 @@ class AppServiceProvider extends ServiceProvider
 
         Relation::enforceMorphMap([
             'task' => Task::class,
-            'project' => Project::class
+            'project' => Project::class,
         ]);
     }
 }

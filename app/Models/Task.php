@@ -2,20 +2,20 @@
 
 namespace App\Models;
 
+use App\Domain\Task\TaskPriority;
+use App\Models\Scopes\ExcludeArchivedProjectTasksScope;
 use App\Observers\TaskObserver;
 use Database\Factories\TaskFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
-use App\Domain\Task\TaskPriority;
-use App\Models\Scopes\ExcludeArchivedProjectTasksScope;
-use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 
 #[ObservedBy([TaskObserver::class])]
 #[Fillable(['title', 'description', 'status', 'slug', 'project_id', 'due_date', 'assignee_id'])]
@@ -81,10 +81,10 @@ class Task extends Model
     {
         $allowed = array_filter(
             TaskPriority::cases(),
-            fn(TaskPriority $priority): bool => $priority->weight() >= $minimum->weight(),
+            fn (TaskPriority $priority): bool => $priority->weight() >= $minimum->weight(),
         );
 
-        $query->whereIn('priority', array_map(fn(TaskPriority $p): string => $p->value, $allowed));
+        $query->whereIn('priority', array_map(fn (TaskPriority $p): string => $p->value, $allowed));
     }
 
     /** @return array{priority: class-string<TaskPriority>, due_date: 'date'} */

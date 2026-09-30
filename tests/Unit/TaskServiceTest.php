@@ -15,7 +15,7 @@ class TaskServiceTest extends TestCase
     {
         Event::fake([TaskCreated::class]);
 
-        $service = new TaskService(new FakeTaskRepository());
+        $service = new TaskService(new FakeTaskRepository);
 
         $task = $service->createTask(['title' => 'Isolated test task', 'status' => 'todo', 'project_id' => 1]);
 
@@ -30,7 +30,7 @@ class TaskServiceTest extends TestCase
         // (they'd queue a job that reloads the never-persisted in-memory task).
         Event::fake([TaskCreated::class, TaskCompleted::class]);
 
-        $service = new TaskService(new FakeTaskRepository());
+        $service = new TaskService(new FakeTaskRepository);
         $task = $service->createTask(['title' => 'Finish me', 'status' => 'in_progress']);
 
         $completed = $service->completeTask($task);

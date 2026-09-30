@@ -5,7 +5,6 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 use App\Domain\Notification\NotificationPreference;
-use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -23,9 +22,10 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'notification_preference'
+        'notification_preference',
     ];
 
+    /** @return array{email_verified_at: 'datetime', password: 'hashed', notification_preference: 'App\\Domain\\Notification\\NotificationPreference'} */
     protected function casts(): array
     {
         return [

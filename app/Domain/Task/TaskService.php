@@ -2,7 +2,6 @@
 
 namespace App\Domain\Task;
 
-use App\Domain\Notification\NotificationChannel;
 use App\Events\TaskCompleted;
 use App\Events\TaskCreated;
 use App\Models\Task;
@@ -11,7 +10,6 @@ use Illuminate\Support\Facades\Log;
 
 class TaskService
 {
-
     public function __construct(
         private TaskRepositoryInterface $taskRepository,
     ) {}

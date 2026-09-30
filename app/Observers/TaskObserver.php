@@ -10,6 +10,7 @@ class TaskObserver
     public function __construct(
         private SlugGenerator $slugGenerator
     ) {}
+
     /**
      * Runs before the INSERT, so the NOT NULL slug column gets its value.
      */

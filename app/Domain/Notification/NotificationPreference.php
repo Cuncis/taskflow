@@ -4,10 +4,10 @@ namespace App\Domain\Notification;
 
 enum NotificationPreference: string
 {
-    case Email = "email";
-    case Sms = "sms";
-    case Slack = "slack";
-    case Push = "push";
+    case Email = 'email';
+    case Sms = 'sms';
+    case Slack = 'slack';
+    case Push = 'push';
 
     public function label(): string
     {

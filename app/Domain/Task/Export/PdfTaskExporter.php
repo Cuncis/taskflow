@@ -14,7 +14,7 @@ class PdfTaskExporter implements TaskExporterInterface
     public function export(array $tasks): string
     {
         if (! $this->canExport($tasks)) {
-            throw new \RuntimeException('PDF export not supported for more than ' . self::MAX_TASKS . ' tasks.');
+            throw new \RuntimeException('PDF export not supported for more than '.self::MAX_TASKS.' tasks.');
         }
 
         // Real PDF generation would go here — we'll do this for real in Phase 5's PDF work.
@@ -23,6 +23,6 @@ class PdfTaskExporter implements TaskExporterInterface
 
     private function countLabel(array $tasks): string
     {
-        return count($tasks) . ' tasks';
+        return count($tasks).' tasks';
     }
 }
