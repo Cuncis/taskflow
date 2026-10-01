@@ -23,7 +23,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 #[ObservedBy([TaskObserver::class])]
-#[Fillable(['title', 'description', 'status', 'slug', 'project_id', 'due_date', 'assignee_id'])]
+#[Fillable(['title', 'description', 'status', 'slug', 'project_id', 'due_date', 'assignee_id', 'archived_at'])]
 #[ScopedBy([ExcludeArchivedProjectTasksScope::class])]
 #[UseFactory(TaskFactory::class)]
 class Task extends Model
@@ -93,12 +93,13 @@ class Task extends Model
         $query->whereIn('priority', array_map(fn (TaskPriority $p): string => $p->value, $allowed));
     }
 
-    /** @return array{priority: class-string<TaskPriority>, due_date: 'date'} */
+    /** @return array{priority: class-string<TaskPriority>, due_date: 'date', archived_at: 'datetime'} */
     protected function casts(): array
     {
         return [
             'priority' => TaskPriority::class,
             'due_date' => 'date',
+            'archived_at' => 'datetime',
         ];
     }
 }
