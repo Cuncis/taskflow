@@ -2,28 +2,53 @@
 
 namespace App\Domain\Task\Http\Controllers;
 
+use App\Domain\Task\Actions\ArchiveTaskAction;
+use App\Domain\Task\Actions\AssignTaskAction;
+use App\Domain\Task\Actions\CreateTaskAction;
+use App\Domain\Task\Http\Requests\AssignTaskRequest;
 use App\Domain\Task\Http\Requests\StoreTaskRequest;
 use App\Domain\Task\Http\Resources\TaskResource;
-use App\Domain\Task\TaskService;
+use App\Domain\Task\Models\Task;
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use RuntimeException;
 
 class TaskController extends Controller
 {
-    public function __construct(
-        private TaskService $taskService
-    ) {}
-
-    public function store(StoreTaskRequest $request)
+    public function store(StoreTaskRequest $request, CreateTaskAction $createTask)
     {
-        $task = $this->taskService->createTask($request->validated());
+        $task = $createTask($request->validated());
 
-        // 5. Email notification (pretend this sends a real email)
-        // Mail::to('team@taskflow.test')->send(new TaskCreatedMail($task));
-
-        // 6. Response formatting
         return response()->json([
             'message' => 'Task created successfully',
             'data' => new TaskResource($task),
         ], 201);
+    }
+
+    public function assign(AssignTaskRequest $request, Task $task, AssignTaskAction $assignTask)
+    {
+        $assignee = User::findOrFail($request->validated('assignee_id'));
+
+        $task = $assignTask($task, $assignee);
+
+        return response()->json([
+            'message' => 'Task assigned successfully',
+            'data' => new TaskResource($task),
+        ]);
+    }
+
+    public function archive(Task $task, ArchiveTaskAction $archiveTask)
+    {
+        try {
+            $task = $archiveTask($task);
+        } catch (RuntimeException $e) {
+            // Business-rule violation (e.g. task isn't done): a client error, not a server 500.
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return response()->json([
+            'message' => 'Task archived successfully',
+            'data' => new TaskResource($task),
+        ]);
     }
 }

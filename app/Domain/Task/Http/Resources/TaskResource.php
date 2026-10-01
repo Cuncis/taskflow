@@ -18,6 +18,8 @@ class TaskResource extends JsonResource
             'title' => $this->title,
             'slug' => $this->slug,
             'status' => $this->status,
+            'assignee_id' => $this->assignee_id,
+            'archived_at' => $this->archived_at?->format('Y-m-d H:i:s'),
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
         ];
     }
