@@ -14,6 +14,7 @@ Route::get('/lifecycle-test', [LifecycleTestController::class, 'show']);
 
 Route::middleware('auth')->group(function () {
     Route::post('/tasks', [TaskController::class, 'store']);
+    Route::post('/tasks/{task}/assign', [TaskController::class, 'assign']);
 });
 
 Route::get('/board-demo', function () {
