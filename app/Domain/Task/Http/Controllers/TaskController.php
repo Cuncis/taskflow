@@ -2,25 +2,17 @@
 
 namespace App\Domain\Task\Http\Controllers;
 
+use App\Domain\Task\Actions\CreateTaskAction;
 use App\Domain\Task\Http\Requests\StoreTaskRequest;
 use App\Domain\Task\Http\Resources\TaskResource;
-use App\Domain\Task\TaskService;
 use App\Http\Controllers\Controller;
 
 class TaskController extends Controller
 {
-    public function __construct(
-        private TaskService $taskService
-    ) {}
-
-    public function store(StoreTaskRequest $request)
+    public function store(StoreTaskRequest $request, CreateTaskAction $createTask)
     {
-        $task = $this->taskService->createTask($request->validated());
+        $task = $createTask($request->validated());
 
-        // 5. Email notification (pretend this sends a real email)
-        // Mail::to('team@taskflow.test')->send(new TaskCreatedMail($task));
-
-        // 6. Response formatting
         return response()->json([
             'message' => 'Task created successfully',
             'data' => new TaskResource($task),
