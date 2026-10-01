@@ -7,11 +7,13 @@ use App\Domain\Task\Actions\AssignTaskAction;
 use App\Domain\Task\Actions\CompleteTaskAction;
 use App\Domain\Task\Actions\CreateTaskAction;
 use App\Domain\Task\Actions\MoveTaskAction;
+use App\Domain\Task\Actions\UnarchiveTaskAction;
 use App\Domain\Task\Events\TaskArchived;
 use App\Domain\Task\Events\TaskAssigned;
 use App\Domain\Task\Events\TaskCompleted;
 use App\Domain\Task\Events\TaskCreated;
 use App\Domain\Task\Events\TaskMoved;
+use App\Domain\Task\Events\TaskUnarchived;
 use App\Domain\Task\Models\Task;
 use App\Domain\Task\Repositories\FakeTaskRepository;
 use App\Models\User;
@@ -119,6 +121,34 @@ class TaskActionsTest extends TestCase
         } catch (RuntimeException) {
             $this->assertNull($task->fresh()->archived_at);
             Event::assertNotDispatched(TaskArchived::class);
+        }
+    }
+
+    public function test_unarchive_task_clears_archived_at_keeps_status_and_fires_event(): void
+    {
+        Event::fake([TaskUnarchived::class]);
+
+        $task = Task::factory()->completed()->create(['archived_at' => now()]);
+
+        (new UnarchiveTaskAction)($task);
+
+        $fresh = $task->fresh();
+        $this->assertNull($fresh->archived_at);
+        $this->assertSame('done', $fresh->status);
+        Event::assertDispatched(TaskUnarchived::class);
+    }
+
+    public function test_unarchive_task_rejects_tasks_that_are_not_archived(): void
+    {
+        Event::fake([TaskUnarchived::class]);
+
+        $task = Task::factory()->completed()->create();
+
+        try {
+            (new UnarchiveTaskAction)($task);
+            $this->fail('Expected RuntimeException');
+        } catch (RuntimeException) {
+            Event::assertNotDispatched(TaskUnarchived::class);
         }
     }
 }
