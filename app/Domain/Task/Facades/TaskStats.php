@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Facade;
 /**
  * @method static float completionRateFor(Project $project)
  * @method static int overdueCountFor(Project $project)
+ * @method static float averageTasksPerAssignee(Project $project)
  *
  * @see TaskStatsService
  */
