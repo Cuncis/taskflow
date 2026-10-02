@@ -2,6 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Domain\Notification\EmailChannel;
+use App\Domain\Notification\NotificationChannel;
+use App\Domain\Notification\NotificationPreference;
 use App\Domain\Task\Events\TaskAssigned;
 use App\Domain\Task\Models\Task;
 use App\Models\User;
@@ -31,11 +34,11 @@ class AssignTaskTest extends TestCase
         $task = Task::factory()->unassigned()->create();
         $assignee = User::factory()->create();
 
-        $this->actingAs($this->user)->postJson("/tasks/{$task->id}/assign", ['assignee_id' => $assignee->id])
+        $this->actingAs($this->user)->patchJson("/tasks/{$task->id}/assign", ['assignee_id' => $assignee->id])
             ->assertStatus(200)
             ->assertJson([
                 'message' => 'Task assigned successfully',
-                'data' => ['id' => $task->id, 'assignee_id' => $assignee->id],
+                'data' => ['id' => $task->id, 'assignee_id' => $assignee->id, 'assignee' => ['id' => $assignee->id, 'name' => $assignee->name]],
             ]);
 
         $this->assertDatabaseHas('tasks', ['id' => $task->id, 'assignee_id' => $assignee->id]);
@@ -50,7 +53,7 @@ class AssignTaskTest extends TestCase
         $task = Task::factory()->unassigned()->create();
         $assignee = User::factory()->create();
 
-        $this->actingAs($this->user)->postJson("/tasks/{$task->id}/assign", ['assignee_id' => $assignee->id])
+        $this->actingAs($this->user)->patchJson("/tasks/{$task->id}/assign", ['assignee_id' => $assignee->id])
             ->assertStatus(200);
 
         Event::assertDispatched(
@@ -67,7 +70,7 @@ class AssignTaskTest extends TestCase
 
         $task = Task::factory()->unassigned()->create();
 
-        $this->actingAs($this->user)->postJson("/tasks/{$task->id}/assign", [])
+        $this->actingAs($this->user)->patchJson("/tasks/{$task->id}/assign", [])
             ->assertStatus(422)
             ->assertJsonValidationErrors('assignee_id');
 
@@ -81,7 +84,7 @@ class AssignTaskTest extends TestCase
 
         $task = Task::factory()->unassigned()->create();
 
-        $this->actingAs($this->user)->postJson("/tasks/{$task->id}/assign", ['assignee_id' => 999999])
+        $this->actingAs($this->user)->patchJson("/tasks/{$task->id}/assign", ['assignee_id' => 999999])
             ->assertStatus(422)
             ->assertJsonValidationErrors('assignee_id');
 
@@ -94,7 +97,7 @@ class AssignTaskTest extends TestCase
     {
         Event::fake([TaskAssigned::class]);
 
-        $this->actingAs($this->user)->postJson('/tasks/999999/assign', ['assignee_id' => $this->user->id])
+        $this->actingAs($this->user)->patchJson('/tasks/999999/assign', ['assignee_id' => $this->user->id])
             ->assertStatus(404);
 
         Event::assertNotDispatched(TaskAssigned::class);
@@ -108,10 +111,82 @@ class AssignTaskTest extends TestCase
         $task = Task::factory()->unassigned()->create();
         $assignee = User::factory()->create();
 
-        $this->postJson("/tasks/{$task->id}/assign", ['assignee_id' => $assignee->id])
+        $this->patchJson("/tasks/{$task->id}/assign", ['assignee_id' => $assignee->id])
             ->assertStatus(401);
 
         $this->assertNull($task->fresh()->assignee_id);
         Event::assertNotDispatched(TaskAssigned::class);
+    }
+
+    #[Group('happy-path')]
+    public function test_it_assigns_a_task_through_the_full_http_flow_and_notifies_the_assignee(): void
+    {
+        $task = Task::factory()->unassigned()->create();
+        $assignee = User::factory()->create(['notification_preference' => NotificationPreference::Email]);
+
+        $fakeChannel = new class implements NotificationChannel
+        {
+            /** @var array<int, array{to: string, message: string}> */
+            public array $sent = [];
+
+            public function send(string $to, string $message): void
+            {
+                $this->sent[] = compact('to', 'message');
+            }
+        };
+
+        // The factory resolves the CONCRETE channel for the assignee's preference (not the
+        // NotificationChannel interface), so that is the binding to swap for this test.
+        $this->app->instance(EmailChannel::class, $fakeChannel);
+
+        $this->actingAs($this->user)->patchJson("/tasks/{$task->id}/assign", ['assignee_id' => $assignee->id])
+            ->assertStatus(200)
+            ->assertJsonPath('data.assignee.id', $assignee->id);
+
+        $this->assertDatabaseHas('tasks', ['id' => $task->id, 'assignee_id' => $assignee->id]);
+        $this->assertCount(1, $fakeChannel->sent);
+        $this->assertSame($assignee->email, $fakeChannel->sent[0]['to']);
+        $this->assertStringContainsString($task->title, $fakeChannel->sent[0]['message']);
+    }
+
+    #[Group('happy-path')]
+    public function test_it_allows_reassigning_a_task_that_already_has_an_assignee(): void
+    {
+        Event::fake([TaskAssigned::class]);
+
+        $original = User::factory()->create();
+        $task = Task::factory()->create(['assignee_id' => $original->id]);
+        $new = User::factory()->create();
+
+        $this->actingAs($this->user)->patchJson("/tasks/{$task->id}/assign", ['assignee_id' => $new->id])
+            ->assertStatus(200)
+            ->assertJsonPath('data.assignee.id', $new->id);
+
+        $this->assertSame($new->id, $task->fresh()->assignee_id);
+    }
+
+    #[Group('happy-path')]
+    public function test_assigning_to_the_current_assignee_succeeds_without_notifying_again(): void
+    {
+        $assignee = User::factory()->create(['notification_preference' => NotificationPreference::Email]);
+        $task = Task::factory()->create(['assignee_id' => $assignee->id]);
+
+        $fakeChannel = new class implements NotificationChannel
+        {
+            public int $sends = 0;
+
+            public function send(string $to, string $message): void
+            {
+                $this->sends++;
+            }
+        };
+        $this->app->instance(EmailChannel::class, $fakeChannel); // real event + listener run; only the channel is swapped
+
+        $this->actingAs($this->user)->patchJson("/tasks/{$task->id}/assign", ['assignee_id' => $assignee->id])
+            ->assertStatus(200)
+            ->assertJsonPath('data.assignee.id', $assignee->id);
+
+        $this->assertSame($assignee->id, $task->fresh()->assignee_id);
+        $this->assertSame(0, $fakeChannel->sends);
     }
 }

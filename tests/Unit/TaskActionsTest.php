@@ -66,6 +66,20 @@ class TaskActionsTest extends TestCase
         Event::assertDispatched(TaskAssigned::class, fn (TaskAssigned $e) => $e->assignee->is($user));
     }
 
+    public function test_assigning_a_task_to_its_current_assignee_is_a_noop(): void
+    {
+        Event::fake([TaskAssigned::class]);
+
+        $user = User::factory()->create();
+        $task = Task::factory()->create(['assignee_id' => $user->id]);
+
+        $result = (new AssignTaskAction)($task, $user);
+
+        $this->assertTrue($result->is($task));
+        $this->assertSame($user->id, $task->fresh()->assignee_id);
+        Event::assertNotDispatched(TaskAssigned::class);
+    }
+
     public function test_move_task_changes_status_and_fires_event(): void
     {
         Event::fake([TaskMoved::class]);

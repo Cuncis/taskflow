@@ -30,7 +30,7 @@ class TaskController extends Controller
     {
         $assignee = User::findOrFail((int) $request->validated('assignee_id'));
 
-        $task = $assignTask($task, $assignee);
+        $task = $assignTask($task, $assignee)->load('assignee');
 
         return response()->json([
             'message' => 'Task assigned successfully',

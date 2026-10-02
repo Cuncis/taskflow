@@ -10,6 +10,10 @@ class AssignTaskAction
 {
     public function __invoke(Task $task, User $assignee): Task
     {
+        if ($task->assignee_id === $assignee->id) {
+            return $task; // already theirs: no change, so no event and no repeat notification
+        }
+
         $task->update(['assignee_id' => $assignee->id]);
 
         TaskAssigned::dispatch($task, $assignee);
