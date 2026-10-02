@@ -3,6 +3,7 @@
 namespace App\Domain\Task\Repositories;
 
 use App\Domain\Task\Models\Task;
+use App\Domain\Task\TaskStatus;
 use Illuminate\Database\Eloquent\Collection;
 
 class EloquentTaskRepository implements TaskRepositoryInterface
@@ -27,9 +28,12 @@ class EloquentTaskRepository implements TaskRepositoryInterface
 
     public function findActiveForProject(int $projectId): Collection
     {
-        return Task::where('project_id', $projectId)->where('status', '!=', 'done')->get();
+        return Task::where('project_id', $projectId)->where('status', '!=', TaskStatus::Done)->get();
     }
 
+    /**
+     * @return Collection<int, Task>
+     */
     public function findOverdue(): Collection
     {
         return Task::overdue()->get();

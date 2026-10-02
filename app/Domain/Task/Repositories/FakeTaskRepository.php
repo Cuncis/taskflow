@@ -3,6 +3,7 @@
 namespace App\Domain\Task\Repositories;
 
 use App\Domain\Task\Models\Task;
+use App\Domain\Task\TaskStatus;
 use Illuminate\Database\Eloquent\Collection;
 
 /**
@@ -13,6 +14,7 @@ class FakeTaskRepository implements TaskRepositoryInterface
     /** @var array<int, Task> */
     private array $tasks = [];
 
+    /** @var int<0, max> */
     private int $lastId = 0;
 
     public function find(int $id): ?Task
@@ -41,15 +43,18 @@ class FakeTaskRepository implements TaskRepositoryInterface
     {
         return new Collection(array_values(array_filter(
             $this->tasks,
-            fn (Task $task): bool => $task->project_id === $projectId && $task->status !== 'done',
+            fn (Task $task): bool => $task->project_id === $projectId && $task->status !== TaskStatus::Done,
         )));
     }
 
+    /**
+     * @return Collection<int, Task>
+     */
     public function findOverdue(): Collection
     {
         return new Collection(array_values(array_filter(
             $this->tasks,
-            fn (Task $task): bool => $task->status !== 'done'
+            fn (Task $task): bool => $task->status !== TaskStatus::Done
                 && $task->due_date !== null
                 && $task->due_date->isPast(),
         )));

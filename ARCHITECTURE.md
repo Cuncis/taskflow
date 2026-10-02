@@ -9,22 +9,68 @@ supporting services.
 
 ```
 app/Domain/
-├── Task/            models, repositories (interface, Eloquent, in-memory fake), exporters,
-│                    events, listeners, observer, global scope, queued job,
-│                    http/{Controllers,Requests,Resources}, TaskService, SlugGenerator, TaskPriority
-├── Project/         Project model
+├── Task/            models, Actions, repositories (interface, Eloquent, in-memory fake),
+│                    exporters, events, listeners, observer, global scope, queued job,
+│                    Console, Facades, http/{Controllers,Requests,Resources},
+│                    TaskService (queries), TaskStats, SlugGenerator, TaskPriority, TaskStatus
+├── Project/         Project model and Actions
 ├── Collaboration/   Comment and Attachment models
 └── Notification/    channel abstraction (Email, SMS, Slack, Push), the factory that
                      selects one by user preference, and the services that use it
 ```
 
 - `app/Domain/Task/` — tasks, the core unit of work in TaskFlow.
+  - `Models/` — the Task Eloquent model. `status` is cast to the `TaskStatus` enum and
+    `priority` to `TaskPriority`, so invalid values cannot be represented in code.
+  - `Actions/` — single-purpose command classes: `CreateTaskAction`, `AssignTaskAction`,
+    `MoveTaskAction`, `CompleteTaskAction`, `ArchiveTaskAction`, `UnarchiveTaskAction`.
+    Each has one public `__invoke` and does exactly one thing, including enforcing its own
+    business rule (only done tasks can be archived; only archived tasks can be unarchived).
+    They are independently unit-testable.
+  - `Events/` / `Listeners/` — `TaskCreated`, `TaskCompleted`, `TaskAssigned`, `TaskMoved`,
+    `TaskArchived`, `TaskUnarchived` and their reactions (notifications, activity logging).
+  - `Observers/` — `TaskObserver` handles model-integrity rules (slug generation, cascading
+    comment/attachment deletes) that must hold however a Task is created or deleted.
+  - `Repositories/` — `TaskRepositoryInterface` abstracts Eloquent-specific query logic.
+  - `Http/` — controllers, form requests, API resources.
+  - `Console/` — Artisan commands (`taskflow:archive-stale-tasks`), registered explicitly in
+    `TaskFlowServiceProvider` and scheduled in `routes/console.php`, since they live outside
+    Laravel's default scanned path.
+  - `Scopes/` — the `ExcludeArchivedProjectTasksScope` global scope (query scopes live on the model).
+  - `Facades/` — the `TaskStats` facade (see Facades below).
 - `app/Domain/Project/` — projects, which group tasks together.
 - `app/Domain/Collaboration/` — comments and attachments, which can belong to
   either a Task or a Project (polymorphic), so they don't belong to either
   domain exclusively.
 - `app/Domain/Notification/` — the notification channel abstraction (Email,
   SMS, Slack, Push) and the factory that selects one based on user preference.
+
+## Commands vs Queries
+
+Operations that change state, and usually fire events, are Actions (commands). Reads stay
+as plain methods: `TaskService` now contains only queries, and `TaskStats` is a read-only
+statistics service. The rule of thumb: if calling it twice could do something different or
+side-effecty (create a row, fire an event, send a notification) it is a command and gets an
+Action; if repeating it is always safe it is a query and a service or repository method is fine.
+
+## Facades
+
+TaskFlow has one internal Facade, `TaskStats`, built to understand the mechanism
+(`getFacadeAccessor()` returns a container key; `__callStatic` forwards to that object).
+In practice the codebase prefers constructor injection for its own domain services, because
+the constructor is then an honest list of a class's dependencies (see
+`GetProjectSummaryActionInjected`), and reserves facade-style calls for Laravel's own
+framework concerns (Cache, Log, Http, Queue). Larastan can see through our facade because
+its accessor is a real class name, so a mistyped facade method is still caught statically.
+
+## Service Providers
+
+TaskFlow-specific wiring lives in `TaskFlowServiceProvider`, kept separate from the
+framework-generic `AppServiceProvider` (which is left empty): repository and notification
+bindings, the `TaskStats` singleton, the morph map, the lazy-loading guard, Artisan command
+registration and custom Blade directives. Providers are listed in `bootstrap/providers.php`.
+`register()` only declares bindings; anything that resolves a binding belongs in `boot()`,
+because provider order inside `register()` is not something to depend on.
 
 ## What's NOT domain-organized, on purpose
 
@@ -51,12 +97,14 @@ add a new domain, do the same:
   `bootstrap/app.php`. A listener placed in a new domain folder is silently never
   called until that folder is added there. Run `sail artisan event:list` to check.
   (If events are cached in production, re-run `event:cache` after changes.)
-- **Morph map.** `Relation::enforceMorphMap([...])` in `AppServiceProvider` maps
+- **Morph map.** `Relation::enforceMorphMap([...])` in `TaskFlowServiceProvider` maps
   `task` and `project` to their model classes, so polymorphic rows in the database
   do not depend on class names or namespaces. Moving a model does not require a
   data migration.
+- **Artisan commands.** Commands in `app/Domain/Task/Console` are registered with
+  `$this->commands([...])` in `TaskFlowServiceProvider::boot()`.
 - **Repository binding.** `TaskRepositoryInterface` is bound to
-  `EloquentTaskRepository` in `AppServiceProvider`; tests can use
+  `EloquentTaskRepository` in `TaskFlowServiceProvider`; tests can use
   `FakeTaskRepository` (in-memory) instead.
 
 ## Why this structure
@@ -101,7 +149,7 @@ boundaries between them.
 
 ## Quality checks
 
-`sail composer check` runs Pint (style), PHPStan/Larastan (static analysis, level 5)
+`sail composer check` runs Pint (style), PHPStan/Larastan (static analysis, level 7)
 and the test suite. Tests use a separate `testing` MySQL database and never write to
 the real log, send HTTP, or run real queued jobs (see `phpunit.xml` and
 `tests/TestCase.php`). Run it inside Sail: on the host, the `mysql` hostname does not

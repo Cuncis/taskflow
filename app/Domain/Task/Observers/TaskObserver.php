@@ -33,35 +33,11 @@ class TaskObserver
     }
 
     /**
-     * Handle the Task "updated" event.
-     */
-    public function updated(Task $task): void
-    {
-        //
-    }
-
-    /**
      * Handle the Task "deleted" event.
      */
     public function deleted(Task $task): void
     {
         $task->comments()->delete();
         $task->attachments()->delete();
-    }
-
-    /**
-     * Handle the Task "restored" event.
-     */
-    public function restored(Task $task): void
-    {
-        //
-    }
-
-    /**
-     * Handle the Task "force deleted" event.
-     */
-    public function forceDeleted(Task $task): void
-    {
-        //
     }
 }

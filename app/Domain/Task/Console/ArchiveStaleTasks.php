@@ -4,6 +4,7 @@ namespace App\Domain\Task\Console;
 
 use App\Domain\Task\Actions\ArchiveTaskAction;
 use App\Domain\Task\Models\Task;
+use App\Domain\Task\TaskStatus;
 use Illuminate\Console\Command;
 
 class ArchiveStaleTasks extends Command
@@ -25,7 +26,7 @@ class ArchiveStaleTasks extends Command
             return self::FAILURE;
         }
 
-        $staleTasks = Task::where('status', 'done')
+        $staleTasks = Task::where('status', TaskStatus::Done)
             ->whereNull('archived_at')
             ->where('updated_at', '<', now()->subDays($days))
             ->get();
@@ -50,7 +51,7 @@ class ArchiveStaleTasks extends Command
         $rows = $staleTasks->map(fn (Task $task) => [
             $task->title,
             $task->updated_at->diffForHumans(),
-            $task->status,
+            $task->status->value,
         ])->all();
 
         $this->withProgressBar($staleTasks, function (Task $task) use ($archiveTask) {

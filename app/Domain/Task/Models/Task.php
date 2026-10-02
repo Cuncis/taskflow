@@ -8,6 +8,7 @@ use App\Domain\Project\Models\Project;
 use App\Domain\Task\Observers\TaskObserver;
 use App\Domain\Task\Scopes\ExcludeArchivedProjectTasksScope;
 use App\Domain\Task\TaskPriority;
+use App\Domain\Task\TaskStatus;
 use App\Models\User;
 use Database\Factories\TaskFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -61,27 +62,34 @@ class Task extends Model
         return $this->belongsTo(User::class, 'assignee_id');
     }
 
+    /** @param  Builder<Task>  $query */
     #[Scope]
     protected function overdue(Builder $query): void
     {
-        $query->where('status', '!=', 'done')
+        $query->where('status', '!=', TaskStatus::Done)
             ->where('due_date', '<', now());
     }
 
+    /** @param  Builder<Task>  $query */
     #[Scope]
     protected function assignedTo(Builder $query, User $user): void
     {
         $query->where('assignee_id', $user->id);
     }
 
-    /** Not-done tasks due from today through $days days from now (inclusive; due_date is a DATE column). */
+    /**
+     * Not-done tasks due from today through $days days from now (inclusive; due_date is a DATE column).
+     *
+     * @param  Builder<Task>  $query
+     */
     #[Scope]
     protected function dueSoon(Builder $query, int $days = 3): void
     {
-        $query->where('status', '!=', 'done')
+        $query->where('status', '!=', TaskStatus::Done)
             ->whereBetween('due_date', [today(), today()->addDays($days)]);
     }
 
+    /** @param  Builder<Task>  $query */
     #[Scope]
     protected function priorityAtLeast(Builder $query, TaskPriority $minimum): void
     {
@@ -93,11 +101,12 @@ class Task extends Model
         $query->whereIn('priority', array_map(fn (TaskPriority $p): string => $p->value, $allowed));
     }
 
-    /** @return array{priority: class-string<TaskPriority>, due_date: 'date', archived_at: 'datetime'} */
+    /** @return array{priority: 'App\Domain\Task\TaskPriority', status: 'App\Domain\Task\TaskStatus', due_date: 'date', archived_at: 'datetime'} */
     protected function casts(): array
     {
         return [
             'priority' => TaskPriority::class,
+            'status' => TaskStatus::class,
             'due_date' => 'date',
             'archived_at' => 'datetime',
         ];

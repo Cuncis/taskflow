@@ -6,11 +6,17 @@ class PdfTaskExporter implements TaskExporterInterface
 {
     private const MAX_TASKS = 100;
 
+    /**
+     * @param  array<int, array<string, mixed>>  $tasks
+     */
     public function canExport(array $tasks): bool
     {
         return count($tasks) <= self::MAX_TASKS;
     }
 
+    /**
+     * @param  array<int, array<string, mixed>>  $tasks
+     */
     public function export(array $tasks): string
     {
         if (! $this->canExport($tasks)) {
@@ -21,6 +27,9 @@ class PdfTaskExporter implements TaskExporterInterface
         return "PDF content for {$this->countLabel($tasks)}";
     }
 
+    /**
+     * @param  array<int, array<string, mixed>>  $tasks
+     */
     private function countLabel(array $tasks): string
     {
         return count($tasks).' tasks';

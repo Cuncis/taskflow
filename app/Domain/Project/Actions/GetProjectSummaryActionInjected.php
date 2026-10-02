@@ -11,6 +11,9 @@ class GetProjectSummaryActionInjected
         private TaskStats $taskStats,
     ) {}
 
+    /**
+     * @return array{name: string, completion_rate: float}
+     */
     public function __invoke(Project $project): array
     {
         return [

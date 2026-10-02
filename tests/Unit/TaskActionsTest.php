@@ -16,12 +16,13 @@ use App\Domain\Task\Events\TaskMoved;
 use App\Domain\Task\Events\TaskUnarchived;
 use App\Domain\Task\Models\Task;
 use App\Domain\Task\Repositories\FakeTaskRepository;
+use App\Domain\Task\TaskStatus;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
-use InvalidArgumentException;
 use RuntimeException;
 use Tests\TestCase;
+use TypeError;
 
 class TaskActionsTest extends TestCase
 {
@@ -48,7 +49,7 @@ class TaskActionsTest extends TestCase
 
         $completed = (new CompleteTaskAction($repository))($task);
 
-        $this->assertSame('done', $completed->status);
+        $this->assertSame(TaskStatus::Done, $completed->status);
         Event::assertDispatched(TaskCompleted::class, fn (TaskCompleted $event) => $event->task->is($completed));
     }
 
@@ -71,9 +72,9 @@ class TaskActionsTest extends TestCase
 
         $task = Task::factory()->create(['status' => 'todo']);
 
-        (new MoveTaskAction)($task, 'in_progress');
+        (new MoveTaskAction)($task, TaskStatus::InProgress);
 
-        $this->assertSame('in_progress', $task->fresh()->status);
+        $this->assertSame(TaskStatus::InProgress, $task->fresh()->status);
         Event::assertDispatched(TaskMoved::class, fn (TaskMoved $e) => $e->fromStatus === 'todo' && $e->toStatus === 'in_progress');
     }
 
@@ -83,18 +84,25 @@ class TaskActionsTest extends TestCase
 
         $task = Task::factory()->create(['status' => 'todo']);
 
-        (new MoveTaskAction)($task, 'todo');
+        (new MoveTaskAction)($task, TaskStatus::Todo);
 
         Event::assertNotDispatched(TaskMoved::class);
     }
 
-    public function test_move_task_rejects_an_invalid_status(): void
+    public function test_an_unknown_status_cannot_be_turned_into_a_task_status(): void
+    {
+        // Invalid statuses are now rejected before MoveTaskAction is ever reached.
+        $this->assertNull(TaskStatus::tryFrom('bogus'));
+        $this->assertSame(TaskStatus::InProgress, TaskStatus::from('in_progress'));
+    }
+
+    public function test_move_task_only_accepts_a_task_status(): void
     {
         $task = Task::factory()->create(['status' => 'todo']);
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(TypeError::class);
 
-        (new MoveTaskAction)($task, 'bogus');
+        (new MoveTaskAction)($task, 'in_progress'); // deliberately the wrong type
     }
 
     public function test_archive_task_stamps_archived_at_and_fires_event(): void
@@ -134,7 +142,7 @@ class TaskActionsTest extends TestCase
 
         $fresh = $task->fresh();
         $this->assertNull($fresh->archived_at);
-        $this->assertSame('done', $fresh->status);
+        $this->assertSame(TaskStatus::Done, $fresh->status);
         Event::assertDispatched(TaskUnarchived::class);
     }
 

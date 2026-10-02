@@ -11,11 +11,12 @@ use App\Domain\Task\Http\Resources\TaskResource;
 use App\Domain\Task\Models\Task;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use RuntimeException;
 
 class TaskController extends Controller
 {
-    public function store(StoreTaskRequest $request, CreateTaskAction $createTask)
+    public function store(StoreTaskRequest $request, CreateTaskAction $createTask): JsonResponse
     {
         $task = $createTask($request->validated());
 
@@ -25,9 +26,9 @@ class TaskController extends Controller
         ], 201);
     }
 
-    public function assign(AssignTaskRequest $request, Task $task, AssignTaskAction $assignTask)
+    public function assign(AssignTaskRequest $request, Task $task, AssignTaskAction $assignTask): JsonResponse
     {
-        $assignee = User::findOrFail($request->validated('assignee_id'));
+        $assignee = User::findOrFail((int) $request->validated('assignee_id'));
 
         $task = $assignTask($task, $assignee);
 
@@ -37,7 +38,7 @@ class TaskController extends Controller
         ]);
     }
 
-    public function archive(Task $task, ArchiveTaskAction $archiveTask)
+    public function archive(Task $task, ArchiveTaskAction $archiveTask): JsonResponse
     {
         try {
             $task = $archiveTask($task);

@@ -8,6 +8,9 @@ use SimpleXMLElement;
 
 class XmlTaskExporter implements TaskExporterInterface
 {
+    /**
+     * @param  array<int, array<string, mixed>>  $tasks
+     */
     #[Override]
     public function export(array $tasks): string
     {
@@ -25,11 +28,13 @@ class XmlTaskExporter implements TaskExporterInterface
             }
         }
 
-        return $root->asXML();
+        return $root->asXML() ?: throw new RuntimeException('XML export failed.');
     }
 
     /**
      * XML has no task-count limit, so this is always true.
+     *
+     * @param  array<int, array<string, mixed>>  $tasks
      */
     #[Override]
     public function canExport(array $tasks): bool

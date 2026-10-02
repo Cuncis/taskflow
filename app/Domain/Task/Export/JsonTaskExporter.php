@@ -7,6 +7,9 @@ use RuntimeException;
 
 class JsonTaskExporter implements TaskExporterInterface
 {
+    /**
+     * @param  array<int, array<string, mixed>>  $tasks
+     */
     #[Override]
     public function export(array $tasks): string
     {
@@ -14,11 +17,13 @@ class JsonTaskExporter implements TaskExporterInterface
             throw new RuntimeException('JSON export not supported for these tasks.');
         }
 
-        return json_encode($tasks);
+        return json_encode($tasks, JSON_THROW_ON_ERROR);
     }
 
     /**
      * JSON has no task-count limit, so this is always true.
+     *
+     * @param  array<int, array<string, mixed>>  $tasks
      */
     #[Override]
     public function canExport(array $tasks): bool

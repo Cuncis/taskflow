@@ -2,8 +2,10 @@
 
 namespace App\Domain\Task\Http\Requests;
 
+use App\Domain\Task\TaskStatus;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreTaskRequest extends FormRequest
 {
@@ -25,7 +27,7 @@ class StoreTaskRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'status' => ['required', 'in:todo,in_progress,done'],
+            'status' => ['required', Rule::enum(TaskStatus::class)],
             'project_id' => ['nullable', 'integer', 'exists:projects,id'],
         ];
     }

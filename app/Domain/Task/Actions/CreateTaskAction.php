@@ -12,6 +12,9 @@ class CreateTaskAction
         private TaskRepositoryInterface $taskRepository,
     ) {}
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function __invoke(array $data): Task
     {
         $task = $this->taskRepository->create([

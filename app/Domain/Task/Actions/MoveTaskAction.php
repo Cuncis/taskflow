@@ -4,18 +4,12 @@ namespace App\Domain\Task\Actions;
 
 use App\Domain\Task\Events\TaskMoved;
 use App\Domain\Task\Models\Task;
-use InvalidArgumentException;
+use App\Domain\Task\TaskStatus;
 
 class MoveTaskAction
 {
-    private const VALID_STATUSES = ['todo', 'in_progress', 'done'];
-
-    public function __invoke(Task $task, string $toStatus): Task
+    public function __invoke(Task $task, TaskStatus $toStatus): Task
     {
-        if (! in_array($toStatus, self::VALID_STATUSES, true)) {
-            throw new InvalidArgumentException("Invalid status: {$toStatus}");
-        }
-
         $fromStatus = $task->status;
 
         if ($fromStatus === $toStatus) {
@@ -24,7 +18,7 @@ class MoveTaskAction
 
         $task->update(['status' => $toStatus]);
 
-        TaskMoved::dispatch($task, $fromStatus, $toStatus);
+        TaskMoved::dispatch($task, $fromStatus->value, $toStatus->value);
 
         return $task;
     }

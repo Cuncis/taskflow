@@ -26,5 +26,8 @@ interface TaskRepositoryInterface
 
     public function slugExists(string $slug, ?int $ignoreTaskId = null): bool;
 
+    /**
+     * @return Collection<int, Task>
+     */
     public function findOverdue(): Collection;
 }

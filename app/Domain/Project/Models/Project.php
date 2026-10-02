@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 #[UseFactory(ProjectFactory::class)]
 class Project extends Model
 {
+    /** @use HasFactory<ProjectFactory> */
     use HasFactory;
 
     /** @return HasMany<Task, $this> */

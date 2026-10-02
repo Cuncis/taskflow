@@ -14,7 +14,7 @@ class TaskStats
             return 0.0;
         }
 
-        $completed = $project->tasks()->where('status', 'done')->count();
+        $completed = $project->tasks()->where('status', TaskStatus::Done)->count();
 
         return round(($completed / $total) * 100, 1);
     }

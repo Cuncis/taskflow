@@ -11,13 +11,16 @@ use Illuminate\Http\Resources\Json\JsonResource;
  */
 class TaskResource extends JsonResource
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
             'title' => $this->title,
             'slug' => $this->slug,
-            'status' => $this->status,
+            'status' => $this->status->value,
             'assignee_id' => $this->assignee_id,
             'archived_at' => $this->archived_at?->format('Y-m-d H:i:s'),
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),

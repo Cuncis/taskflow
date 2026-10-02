@@ -14,6 +14,9 @@ class TaskCreated
 
     public function __construct(public readonly Task $task) {}
 
+    /**
+     * @return array<int, PrivateChannel>
+     */
     public function broadcastOn(): array
     {
         return [
