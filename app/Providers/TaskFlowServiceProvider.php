@@ -46,5 +46,9 @@ class TaskFlowServiceProvider extends ServiceProvider
         Blade::directive('priorityBadge', function (string $expression) {
             return "<?php echo '<span style=\"padding:2px 8px;border-radius:4px;background:' . ({$expression})->color() . '\">' . ({$expression})->label() . '</span>'; ?>";
         });
+
+        Blade::directive('taskStatusLabel', function (string $expression) {
+            return "<?php echo e(\\Illuminate\\Support\\Str::headline({$expression})); ?>";
+        });
     }
 }
