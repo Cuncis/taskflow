@@ -11,6 +11,7 @@ use App\Domain\Task\Console\ArchiveStaleTasks;
 use App\Domain\Task\Models\Task;
 use App\Domain\Task\Repositories\EloquentTaskRepository;
 use App\Domain\Task\Repositories\TaskRepositoryInterface;
+use App\Domain\Task\TaskStats;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Blade;
@@ -29,6 +30,8 @@ class TaskFlowServiceProvider extends ServiceProvider
         $this->app->when(UrgentAlertService::class)
             ->needs(NotificationChannel::class)
             ->give(SmsChannel::class);
+
+        $this->app->singleton(TaskStats::class);
     }
 
     /**
