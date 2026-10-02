@@ -3,7 +3,6 @@
 namespace App\Domain\Task\Repositories;
 
 use App\Domain\Task\Models\Task;
-use App\Domain\Task\TaskStatus;
 use Illuminate\Database\Eloquent\Collection;
 
 class EloquentTaskRepository implements TaskRepositoryInterface
@@ -28,7 +27,7 @@ class EloquentTaskRepository implements TaskRepositoryInterface
 
     public function findActiveForProject(int $projectId): Collection
     {
-        return Task::where('project_id', $projectId)->where('status', '!=', TaskStatus::Done)->get();
+        return Task::active()->where('project_id', $projectId)->get();
     }
 
     /**
@@ -41,7 +40,8 @@ class EloquentTaskRepository implements TaskRepositoryInterface
 
     public function slugExists(string $slug, ?int $ignoreTaskId = null): bool
     {
-        return Task::where('slug', $slug)
+        // Slugs are unique across ALL tasks, including ones hidden by the archived-project global scope.
+        return Task::withoutGlobalScopes()->where('slug', $slug)
             ->when($ignoreTaskId, fn ($query) => $query->where('id', '!=', $ignoreTaskId))
             ->exists();
     }

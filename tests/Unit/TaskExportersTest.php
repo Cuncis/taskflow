@@ -20,7 +20,22 @@ class TaskExportersTest extends TestCase
 
     public function test_csv_export(): void
     {
-        $this->assertSame("title, status\nFirst,todo\nSecond,done", (new CsvTaskExporter)->export($this->tasks));
+        $this->assertSame("title,status\nFirst,todo\nSecond,done", (new CsvTaskExporter)->export($this->tasks));
+    }
+
+    public function test_csv_export_quotes_values_containing_commas_quotes_and_newlines(): void
+    {
+        $csv = (new CsvTaskExporter)->export([['title' => "Fix \"login\", then deploy\nsoon", 'status' => 'todo']]);
+
+        $parsed = [];
+        $handle = fopen('php://temp', 'r+');
+        fwrite($handle, $csv);
+        rewind($handle);
+        while (($row = fgetcsv($handle, null, ',', '"', '')) !== false) {
+            $parsed[] = $row;
+        }
+
+        $this->assertSame([['title', 'status'], ["Fix \"login\", then deploy\nsoon", 'todo']], $parsed);
     }
 
     public function test_json_export_round_trips(): void
@@ -56,6 +71,6 @@ class TaskExportersTest extends TestCase
         $results = (new MultiFormatTaskExporter)->exportAllFormats($tooMany, [new PdfTaskExporter, new CsvTaskExporter]);
 
         $this->assertStringStartsWith('Skipped', $results[0]);
-        $this->assertStringStartsWith('title, status', $results[1]);
+        $this->assertStringStartsWith('title,status', $results[1]);
     }
 }

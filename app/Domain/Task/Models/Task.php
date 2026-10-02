@@ -62,11 +62,22 @@ class Task extends Model
         return $this->belongsTo(User::class, 'assignee_id');
     }
 
+    /**
+     * Tasks that are not done yet.
+     *
+     * @param  Builder<Task>  $query
+     */
+    #[Scope]
+    protected function active(Builder $query): void
+    {
+        $query->where('status', '!=', TaskStatus::Done);
+    }
+
     /** @param  Builder<Task>  $query */
     #[Scope]
     protected function overdue(Builder $query): void
     {
-        $query->where('status', '!=', TaskStatus::Done)
+        $query->active()
             ->where('due_date', '<', now());
     }
 
@@ -85,7 +96,7 @@ class Task extends Model
     #[Scope]
     protected function dueSoon(Builder $query, int $days = 3): void
     {
-        $query->where('status', '!=', TaskStatus::Done)
+        $query->active()
             ->whereBetween('due_date', [today(), today()->addDays($days)]);
     }
 

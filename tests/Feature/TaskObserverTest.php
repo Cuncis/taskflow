@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Domain\Collaboration\Models\Attachment;
 use App\Domain\Collaboration\Models\Comment;
+use App\Domain\Project\Models\Project;
 use App\Domain\Task\Models\Task;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -25,6 +26,16 @@ class TaskObserverTest extends TestCase
         $second = Task::factory()->create(['title' => 'Same title', 'slug' => null]);
 
         $this->assertSame('same-title-1', $second->slug);
+    }
+
+    public function test_slugs_stay_unique_even_against_tasks_hidden_by_an_archived_project(): void
+    {
+        $archived = Project::factory()->archived()->create();
+        Task::factory()->create(['title' => 'Write docs', 'slug' => null, 'project_id' => $archived->id]);
+
+        $second = Task::factory()->create(['title' => 'Write docs', 'slug' => null, 'project_id' => null]);
+
+        $this->assertSame('write-docs-1', $second->slug);
     }
 
     public function test_changing_the_title_regenerates_the_slug(): void
