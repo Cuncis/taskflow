@@ -1,6 +1,9 @@
 <?php
 
+use App\Providers\AppServiceProvider;
+use App\Providers\TaskFlowServiceProvider;
+
 return [
-    App\Providers\AppServiceProvider::class,
-    App\Providers\TaskFlowServiceProvider::class,
+    AppServiceProvider::class,
+    TaskFlowServiceProvider::class,
 ];
