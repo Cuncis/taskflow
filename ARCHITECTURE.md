@@ -183,8 +183,36 @@ boundaries between them.
 
 ## Quality checks
 
-`sail composer check` runs Pint (style), PHPStan/Larastan (static analysis, level 7)
+`sail composer check` runs Pint (style), PHPStan/Larastan (static analysis, level 9)
 and the test suite. Tests use a separate `testing` MySQL database and never write to
 the real log, send HTTP, or run real queued jobs (see `phpunit.xml` and
 `tests/TestCase.php`). Run it inside Sail: on the host, the `mysql` hostname does not
 resolve.
+
+Tooling decisions, written down so they read as decisions rather than oversights:
+
+- **Larastan level 8, by choice.** Level 9 was measured: it raised only nine small errors (nullable timestamps,
+  `mixed` casts), all fixed, so the code is level-9-clean today. We still enforce 8 because 9's extra strictness
+  is mostly about `mixed` and loosely shaped `array $data` (see the Actions) and would start blocking commits on
+  pedantic typing in new code rather than on bugs. Raising it to 9 is a one-line change in `phpstan.neon`.
+- **`declare(strict_types=1)` is deliberately off** (`"declare_strict_types": false` in `pint.json`).
+  Retrofitting it would surface a wave of coercion issues all at once. Adopting it is a future decision
+  to document here, not something to flip silently. (`pint.json` is plain JSON, so it cannot hold this comment.)
+- **Docblock alignment is `left`** (`phpdoc_align`), so `@param array<string, mixed> $data` uses single spaces,
+  unlike Laravel's default two-space alignment.
+- **Git hook: Pint, Larastan and the full test suite, on every commit.** `.githooks/pre-commit` runs all three
+  before a commit is created; enable it once per clone with `git config core.hooksPath .githooks` (see README).
+  `git commit --no-verify` skips it (verified: a deliberately failing test commits fine with the flag, and is
+  blocked without it).
+
+  *Decision and reasoning.* Measured on this repo: Pint 0.2s, Larastan 0.8s (cached), tests 5s, so the whole hook
+  is about 6 seconds. At that cost the full suite is worth running on every commit: it catches what the other two
+  cannot (the archived-project slug collision was a runtime failure no static check would find), and it stops a
+  red commit before it exists, which is cheaper than finding out in CI. The costs we accepted:
+  - **It needs Docker.** The tests need the `mysql` container (the host cannot resolve it), so with the containers
+    down every commit fails. The hook says to run `sail up -d`; `--no-verify` is the escape for a genuine emergency.
+  - **It scales with the suite.** The tripwire: when the whole hook takes more than about 15 seconds, move the test
+    step out of `pre-commit` into a `pre-push` hook (keeping Pint and Larastan, which stay near-instant, on every
+    commit). A slow hook trains people to reach for `--no-verify`, which defeats it.
+  - **It is a convenience, not a gate.** Hooks are opt-in per clone and skippable, so this does not replace CI.
+    Phase 5's CI must still run the full suite, and be the check that actually guards `main`.

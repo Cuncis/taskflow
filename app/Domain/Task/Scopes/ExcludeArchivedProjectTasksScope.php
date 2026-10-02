@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Scope;
 class ExcludeArchivedProjectTasksScope implements Scope
 {
     /**
-     * @param  Builder<covariant Task>  $builder
+     * @param Builder<covariant Task> $builder
      */
     public function apply(Builder $builder, Model $model): void
     {

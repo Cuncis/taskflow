@@ -5,7 +5,12 @@ parameters:
     paths:
         - app
 
-    level: 7
+    # Level 8, not 9, as a deliberate floor. We measured level 9: it raised only 9 small errors
+    # (nullable timestamps, `mixed` casts), all fixed, so today's code is level-9-clean. We still
+    # enforce 8 because 9's extra strictness is about `mixed` and loosely shaped `array $data`
+    # (see the Action classes) and would start blocking commits on pedantic typing in new code
+    # rather than on bugs. Raising this to 9 is a one-line change when the team wants it.
+    level: 8
 
     excludePaths:
         - ./app/**/*Test.php

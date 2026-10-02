@@ -28,7 +28,7 @@ class TaskController extends Controller
 
     public function assign(AssignTaskRequest $request, Task $task, AssignTaskAction $assignTask): JsonResponse
     {
-        $assignee = User::findOrFail((int) $request->validated('assignee_id'));
+        $assignee = User::findOrFail($request->integer('assignee_id'));
 
         $task = $assignTask($task, $assignee)->load('assignee');
 

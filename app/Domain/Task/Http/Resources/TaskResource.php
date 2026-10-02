@@ -22,12 +22,12 @@ class TaskResource extends JsonResource
             'slug' => $this->slug,
             'status' => $this->status->value,
             'assignee_id' => $this->assignee_id,
-            'assignee' => $this->whenLoaded('assignee', fn () => [
+            'assignee' => $this->whenLoaded('assignee', fn () => $this->assignee === null ? null : [
                 'id' => $this->assignee->id,
                 'name' => $this->assignee->name,
             ]),
             'archived_at' => $this->archived_at?->format('Y-m-d H:i:s'),
-            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
+            'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
         ];
     }
 }

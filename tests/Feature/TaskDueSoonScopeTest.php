@@ -28,7 +28,7 @@ class TaskDueSoonScopeTest extends TestCase
     }
 
     /**
-     * @param  list<int>  $expectedOffsets
+     * @param list<int> $expectedOffsets
      */
     #[DataProvider('daysProvider')]
     public function test_due_soon_respects_days_window(?int $days, array $expectedOffsets): void

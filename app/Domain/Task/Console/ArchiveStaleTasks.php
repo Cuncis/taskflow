@@ -41,7 +41,7 @@ class ArchiveStaleTasks extends Command
 
         if ($dryRun) {
             foreach ($staleTasks as $task) {
-                $this->line("[DRY RUN] Would archive: {$task->title} (last updated {$task->updated_at->diffForHumans()})");
+                $this->line("[DRY RUN] Would archive: {$task->title} (last updated {$this->lastUpdated($task)})");
             }
 
             return self::SUCCESS;
@@ -50,7 +50,7 @@ class ArchiveStaleTasks extends Command
         // Build the summary before archiving: archiving touches updated_at.
         $rows = $staleTasks->map(fn (Task $task) => [
             $task->title,
-            $task->updated_at->diffForHumans(),
+            $this->lastUpdated($task),
             $task->status->value,
         ])->all();
 
@@ -63,5 +63,10 @@ class ArchiveStaleTasks extends Command
         $this->info('Done.');
 
         return self::SUCCESS;
+    }
+
+    private function lastUpdated(Task $task): string
+    {
+        return $task->updated_at?->diffForHumans() ?? 'never';
     }
 }

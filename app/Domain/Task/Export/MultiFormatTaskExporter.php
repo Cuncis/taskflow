@@ -5,8 +5,8 @@ namespace App\Domain\Task\Export;
 class MultiFormatTaskExporter
 {
     /**
-     * @param  array<int, array<string, mixed>>  $tasks
-     * @param  array<int, TaskExporterInterface>  $exporters
+     * @param array<int, array<string, scalar|null>> $tasks
+     * @param array<int, TaskExporterInterface> $exporters
      * @return array<int, string>
      */
     public function exportAllFormats(array $tasks, array $exporters): array

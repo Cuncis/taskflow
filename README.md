@@ -7,6 +7,21 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## Local Development Setup
+
+After cloning, run this once to enable the project's Git hooks (pre-commit Pint, Larastan and test-suite checks):
+
+```bash
+git config core.hooksPath .githooks
+```
+
+Pint and Larastan run on your host (using host PHP when available, otherwise Sail). The tests always run through
+Sail, so the containers must be up (`sail up -d`) when you commit. To commit despite a failing check, in a genuine emergency or on a private WIP
+branch only, use `git commit --no-verify`.
+
+If you commit from a Windows tool (Windows Git, an editor's Git panel) on a checkout inside WSL, the hook hands itself
+over to WSL automatically. Committing from a WSL terminal is the simplest setup.
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:

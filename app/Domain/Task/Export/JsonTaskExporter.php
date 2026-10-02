@@ -8,7 +8,7 @@ use RuntimeException;
 class JsonTaskExporter implements TaskExporterInterface
 {
     /**
-     * @param  array<int, array<string, mixed>>  $tasks
+     * @param array<int, array<string, scalar|null>> $tasks
      */
     #[Override]
     public function export(array $tasks): string
@@ -23,7 +23,7 @@ class JsonTaskExporter implements TaskExporterInterface
     /**
      * JSON has no task-count limit, so this is always true.
      *
-     * @param  array<int, array<string, mixed>>  $tasks
+     * @param array<int, array<string, scalar|null>> $tasks
      */
     #[Override]
     public function canExport(array $tasks): bool

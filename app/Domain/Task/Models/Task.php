@@ -65,7 +65,7 @@ class Task extends Model
     /**
      * Tasks that are not done yet.
      *
-     * @param  Builder<Task>  $query
+     * @param Builder<Task> $query
      */
     #[Scope]
     protected function active(Builder $query): void
@@ -91,7 +91,7 @@ class Task extends Model
     /**
      * Not-done tasks due from today through $days days from now (inclusive; due_date is a DATE column).
      *
-     * @param  Builder<Task>  $query
+     * @param Builder<Task> $query
      */
     #[Scope]
     protected function dueSoon(Builder $query, int $days = 3): void

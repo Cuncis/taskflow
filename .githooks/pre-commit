@@ -1,0 +1,64 @@
+#!/bin/sh
+# Shared pre-commit hook: Pint (style), Larastan (static analysis) and the test suite must pass
+# before a commit is created.
+# Enable once per clone with:  git config core.hooksPath .githooks
+# Emergency escape hatch (use rarely):  git commit --no-verify
+
+ROOT="$(git rev-parse --show-toplevel)" || exit 1
+
+# Committing from Windows (e.g. a Windows Git or an editor's Git) on a checkout that lives in WSL: the hook then
+# runs in Git for Windows' bash, which has no PHP and cannot run Sail. Hand the whole hook over to WSL, where it can.
+case "$ROOT" in
+    //wsl.localhost/* | //wsl\$/*)
+        REST="${ROOT#//*/}"            # Ubuntu-24.04/home/you/project
+        DISTRO="${REST%%/*}"           # Ubuntu-24.04
+        REL_PATH="${REST#*/}"          # home/you/project  (deliberately no leading slash, see below)
+        if ! command -v wsl.exe >/dev/null 2>&1; then
+            echo "This repo lives in WSL but wsl.exe was not found; commit from a WSL terminal instead."
+            exit 1
+        fi
+        # Git for Windows' bash rewrites arguments that start with "/" into Windows paths when it starts a
+        # Windows program, which turned /home/you/project into a path WSL could not find. So: switch that
+        # conversion off, and pass the path without its leading slash (WSL puts the "/" back).
+        export MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*'
+        exec wsl.exe -d "$DISTRO" -e sh -c 'cd "/$1" && exec sh ./.githooks/pre-commit' sh "$REL_PATH"
+        ;;
+esac
+
+cd "$ROOT" || exit 1
+
+# Pint and Larastan run on the host when PHP is there, otherwise through Sail.
+if command -v php >/dev/null 2>&1 && [ -x ./vendor/bin/pint ]; then
+    PINT="./vendor/bin/pint --test"
+    PHPSTAN="./vendor/bin/phpstan analyse --memory-limit=1G --no-progress"
+    FIX="./vendor/bin/pint"
+else
+    PINT="./vendor/bin/sail pint --test"
+    PHPSTAN="./vendor/bin/sail bin phpstan analyse --memory-limit=1G --no-progress"
+    FIX="./vendor/bin/sail pint"
+fi
+
+# The test suite always goes through Sail: the tests need the `mysql` container's database.
+TESTS="./vendor/bin/sail artisan test"
+
+echo "Running Pint..."
+$PINT
+PINT_EXIT=$?
+
+echo "Running Larastan..."
+$PHPSTAN
+PHPSTAN_EXIT=$?
+
+echo "Running tests (needs Sail containers up: sail up -d)..."
+$TESTS
+TESTS_EXIT=$?
+
+if [ $PINT_EXIT -ne 0 ] || [ $PHPSTAN_EXIT -ne 0 ] || [ $TESTS_EXIT -ne 0 ]; then
+    echo ""
+    echo "Pre-commit checks failed (pint=$PINT_EXIT larastan=$PHPSTAN_EXIT tests=$TESTS_EXIT)."
+    echo "Fix the issues above, or run '$FIX' to auto-fix style."
+    exit 1
+fi
+
+echo "All checks passed."
+exit 0
