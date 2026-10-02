@@ -7,6 +7,7 @@ use App\Domain\Notification\NotificationChannel;
 use App\Domain\Notification\SmsChannel;
 use App\Domain\Notification\UrgentAlertService;
 use App\Domain\Project\Models\Project;
+use App\Domain\Task\Console\ArchiveStaleTasks;
 use App\Domain\Task\Models\Task;
 use App\Domain\Task\Repositories\EloquentTaskRepository;
 use App\Domain\Task\Repositories\TaskRepositoryInterface;
@@ -40,6 +41,11 @@ class TaskFlowServiceProvider extends ServiceProvider
         Relation::enforceMorphMap([
             'task' => Task::class,
             'project' => Project::class,
+        ]);
+
+        // Commands live in app/Domain/Task/Console, which Laravel doesn't scan by default.
+        $this->commands([
+            ArchiveStaleTasks::class,
         ]);
 
         // boot()-only: Blade's compiler isn't guaranteed ready during register().
