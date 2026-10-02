@@ -45,6 +45,24 @@ app/Domain/
 - `app/Domain/Notification/` — the notification channel abstraction (Email,
   SMS, Slack, Push) and the factory that selects one based on user preference.
 
+## How a request flows (start here)
+
+"How does creating a task work?" in one trace, `POST /tasks`:
+
+1. `routes/web.php` sends it (behind `auth`) to `TaskController@store`.
+2. `StoreTaskRequest` validates the input (`status` must be a valid `TaskStatus`).
+3. The controller calls `CreateTaskAction`, injected into the method. The action saves through
+   `TaskRepositoryInterface` and dispatches `TaskCreated`.
+4. On save, `TaskObserver` fills in the slug.
+5. Listeners react to `TaskCreated`: a notification to the team, a queued log job, a stats log.
+6. The controller returns a `TaskResource`.
+
+The other endpoints follow the same shape: `POST /tasks/{task}/assign` (`AssignTaskAction`, then
+`SendTaskAssignedNotification` notifies the assignee through `UserNotifier`, which picks the
+channel from that user's own preference) and `DELETE /tasks/{task}/archive` (`ArchiveTaskAction`;
+a business-rule failure becomes a 422, not a 500). Housekeeping runs from the scheduler, not from a
+request: `taskflow:archive-stale-tasks` archives tasks done 90+ days ago.
+
 ## Commands vs Queries
 
 Operations that change state, and usually fire events, are Actions (commands). Reads stay
@@ -114,7 +132,7 @@ creating a task actually work?" Under Laravel's default layout the answer was sp
 over nine top-level folders (Models, Observers, Events, Listeners, Jobs,
 Http/Controllers, Http/Requests, Http/Resources, Domain/Task), and the only way to
 find the pieces was to already know they existed. In the domain layout it is one
-folder: open `app/Domain/Task/` and the request, the service, the observer that
+folder: open `app/Domain/Task/` and the request, the action, the observer that
 writes the slug, the event, and the listeners it triggers are all within a few
 subfolders of each other.
 
@@ -146,6 +164,22 @@ We think that trade is worth it at this size and will keep paying off as more
 features arrive. It is a folder convention, not a framework: nothing here stops
 a domain from using another domain's classes, and we do not try to enforce
 boundaries between them.
+
+## Things that will surprise you
+
+- **Archived tasks are not hidden yet.** `ExcludeArchivedProjectTasksScope` only hides tasks whose
+  *project* is archived. `tasks.archived_at` (set by `ArchiveTaskAction`) is not filtered by any scope,
+  so an archived task still shows up in normal queries until someone adds that.
+- **`TaskExporterInterface` has no container binding, on purpose.** CSV, JSON, PDF and XML are all valid,
+  so there is no single default to bind. Exporters are built with `new` and passed in.
+- **`TaskStatus` and `TaskPriority` are enum casts.** `$task->status` is an enum, not a string: compare
+  with `TaskStatus::Done`, and use `->value` when you need the string. The `casts()` docblock on `Task`
+  must use string-literal class names, or Larastan falls back to treating the column as a string.
+- **Mass assignment is restrictive.** `Task`'s `#[Fillable]` list omits `updated_at`, so
+  `$task->update(['updated_at' => ...])` silently does nothing. Use `forceFill()` when seeding timestamps
+  in tests or tinker.
+- **`FakeTaskRepository`** is an in-memory test double, not dead code: unit tests use it to avoid the database.
+- **`LifecycleTestController`** and the `/board-demo` and `/projects-demo` routes are leftover learning demos.
 
 ## Quality checks
 
