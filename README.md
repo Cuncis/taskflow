@@ -1,73 +1,96 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# TaskFlow
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A Kanban-style task management app, built as a learning project in senior-level Laravel architecture
+(domain folders, Actions, repositories, events, Artisan commands).
 
-## Local Development Setup
+## Requirements
 
-After cloning, run this once to enable the project's Git hooks (pre-commit Pint, Larastan and test-suite checks):
+- Docker and Docker Compose
+- Git
 
-```bash
-git config core.hooksPath .githooks
-```
+You do **not** need PHP, MySQL, Redis or Node on your machine: everything runs in Docker through
+[Laravel Sail](https://laravel.com/docs/sail). Free up ports 80, 3306, 6379 and 5173 first (or see
+[Non-Obvious Things](#non-obvious-things-worth-knowing)).
 
-Pint and Larastan run on your host (using host PHP when available, otherwise Sail). The tests always run through
-Sail, so the containers must be up (`sail up -d`) when you commit. To commit despite a failing check, in a genuine emergency or on a private WIP
-branch only, use `git commit --no-verify`.
-
-If you commit from a Windows tool (Windows Git, an editor's Git panel) on a checkout inside WSL, the hook hands itself
-over to WSL automatically. Committing from a WSL terminal is the simplest setup.
-
-## About Laravel
-
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
-
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Setup
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone https://github.com/Cuncis/taskflow.git
+cd taskflow
+cp .env.example .env
+composer install --ignore-platform-reqs   # one-time: only fetches Sail itself (see note below)
+./vendor/bin/sail up -d                   # first run builds the image, a few minutes
+./vendor/bin/sail ps                      # wait until mysql shows (healthy), then continue
+./vendor/bin/sail artisan key:generate
+./vendor/bin/sail artisan migrate --seed
+git config core.hooksPath .githooks       # turns on the pre-commit checks
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Open <http://localhost>; <http://localhost/up> should return 200.
 
-## Contributing
+Optional, so the commands below work as written: `alias sail='./vendor/bin/sail'`.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+> No PHP/Composer on your machine at all? Use Laravel's Docker-only bootstrap for the `composer install`
+> step: <https://laravel.com/docs/sail#installing-composer-dependencies-for-existing-projects>
 
-## Code of Conduct
+## Running Tests
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+sail artisan test
+```
 
-## Security Vulnerabilities
+Tests must run through Sail: they use the `mysql` container's `testing` database, which your host can't reach.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+With coverage:
+
+```bash
+docker compose exec -e XDEBUG_MODE=coverage laravel.test php artisan test --coverage
+```
+
+## Day-to-Day Commands
+
+| Command | What it does |
+|---|---|
+| `sail up -d` / `sail down` | Start / stop the containers |
+| `sail artisan migrate:fresh --seed` | Reset the database with fresh demo data |
+| `sail composer check` | Everything CI would run: Pint, Larastan, tests |
+| `sail pint` | Auto-fix code style |
+| `sail bin phpstan analyse` | Static analysis (Larastan, level 8) |
+| `sail artisan tinker` | Interactive REPL (PHP only: shell commands go in your shell, not here) |
+| `sail artisan route:list --path=tasks` | Show the task routes |
+| `sail artisan taskflow:archive-stale-tasks --dry-run` | Preview stale-task archiving without applying it |
+
+## Architecture
+
+Code is organised by business domain, not by file type. See [ARCHITECTURE.md](./ARCHITECTURE.md) for the folder
+structure, how a request flows through it, and the reasoning behind the main decisions.
+
+## API (current)
+
+All routes need a logged-in user (unauthenticated JSON requests get `401`).
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/tasks` | Create a task |
+| `PATCH` | `/tasks/{task}/assign` | Assign a task to a user (`assignee_id`) |
+| `DELETE` | `/tasks/{task}/archive` | Archive a done task (`422` if it isn't done) |
+
+## Non-Obvious Things Worth Knowing
+
+- **Git hooks live in `.githooks/`, not `.git/hooks/`.** Run `git config core.hooksPath .githooks` once after
+  cloning (it's in Setup), or the pre-commit checks won't run. The hook needs the containers up, because it runs the
+  tests; `git commit --no-verify` skips it, for emergencies only.
+- **Task queries can silently return fewer rows.** `ExcludeArchivedProjectTasksScope` hides tasks whose *project* is
+  archived. Use `Task::withoutGlobalScopes()` to see everything. (A task's own `archived_at` is not filtered yet.)
+- **`http://localhost` not loading although `sail up -d` succeeded?** Docker can restart without re-publishing the
+  port. Check `docker port taskflow-laravel.test-1`; if it prints nothing, run `sail down && sail up -d`. If
+  something else holds port 80, set `APP_PORT=8000` in `.env` and use `http://localhost:8000`.
+- **`$task->update(['updated_at' => ...])` silently does nothing**: `updated_at` isn't mass-assignable. In tinker and
+  tests use `forceFill()` (with `$task->timestamps = false`) to fake an old timestamp.
+- **In `sail artisan tinker`, only PHP works.** Typing `sail artisan ...` there gives a confusing `PARSE ERROR`.
+  Type `exit` to get your shell back.
+- **Larastan is capped at level 8 on purpose**; the reason is in `phpstan.neon`.
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+MIT.
