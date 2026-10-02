@@ -18,4 +18,24 @@ enum TaskPriority: string
             self::Urgent => 4,
         };
     }
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::Low => 'Low',
+            self::Medium => 'Medium',
+            self::High => 'High',
+            self::Urgent => 'Urgent',
+        };
+    }
+
+    public function color(): string
+    {
+        return match ($this) {
+            self::Low => '#9ca3af',
+            self::Medium => '#60a5fa',
+            self::High => '#fb923c',
+            self::Urgent => '#ef4444',
+        };
+    }
 }
